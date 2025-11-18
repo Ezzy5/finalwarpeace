@@ -1,0 +1,23 @@
+{{ first_name }} {{ last_name }}
+{{ id_number }}
+{{ embg }}
+{{ email }}
+{{ phone_number }}
+
+{{ city }}
+{{ address }}
+{{ bank_account }}
+
+{{ department }}
+{{ role }}
+{{ director_of }}
+{{ vacation_days }}
+{{ vacation_days_left }}
+
+{{ today }}
+{{ start_date }}
+{{ end_date }}
+{{ months }}
+{{ return_date }}
+{{ kind }}
+{{ full_name }}
