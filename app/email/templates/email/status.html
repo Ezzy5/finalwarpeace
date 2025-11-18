@@ -1,0 +1,49 @@
+<div id="EmailPanel" class="container py-4">
+  <h2 class="mb-3">📋 Connected Email Accounts</h2>
+
+  {% if accounts %}
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Email</th>
+          <th>Provider</th>
+          <th>Mode</th>
+          <th>Status</th>
+          <th>Last Verified</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for acc in accounts %}
+        <tr>
+          <td class="nowrap">{{ acc.email_address }}</td>
+          <td>{{ acc.provider|capitalize }}</td>
+          <td class="nowrap">{{ acc.mode.upper() }}</td>
+          <td>
+            {% if acc.incoming_security == 'none' or acc.outgoing_security == 'none' %}
+              <span class="badge bg-warning text-dark">🔓 Not Secure</span>
+            {% endif %}
+            {% if acc.status == "connected" %}
+              <span class="badge bg-success">Connected</span>
+            {% elif acc.status == "error" %}
+              <span class="badge bg-danger">Error</span>
+            {% else %}
+              <span class="badge bg-secondary">{{ acc.status }}</span>
+            {% endif %}
+          </td>
+          <td class="nowrap">{{ acc.last_verified_at or "Never" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-info">No email accounts connected yet.</div>
+  {% endif %}
+
+<div class="mt-3 d-flex gap-2">
+  <a href="{{ url_for('email.provider_select') }}" class="btn btn-primary">Add New Account</a>
+  {% if accounts %}
+    <a href="{{ url_for('email.mailbox_home', acc=accounts[0].id) }}" class="btn btn-outline-secondary">Open Mailbox</a>
+  {% endif %}
+</div>

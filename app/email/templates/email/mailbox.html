@@ -1,0 +1,344 @@
+<!-- app/email/templates/email/mailbox.html -->
+<div id="EmailPanel" class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">📥 Mailbox</h2>
+    {% if account %}
+      <div class="d-flex gap-2">
+        <a class="btn btn-primary" href="{{ url_for('email.compose', acc=account.id) }}">
+          <i class="bi bi-pencil-square me-1"></i> Compose
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('email.mailbox_home', acc=account.id) }}">
+          <i class="bi bi-arrow-repeat me-1"></i> Refresh
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- State markers -->
+  <div data-acc-id="{{ account.id if account else '' }}" hidden></div>
+  <div data-current-folder="{{ selected_folder or 'INBOX' }}" hidden></div>
+  <div data-folder-delim="{{ folder_delim }}" hidden></div>
+  <div data-expand-path="{{ expand_path or '' }}" hidden></div>
+
+  <div class="row g-3">
+    <!-- Sidebar -->
+    <div class="col-md-3">
+      <div class="card mb-3 shadow-sm">
+        <div class="card-header">Accounts</div>
+        <div class="list-group list-group-flush">
+          {% for acc in accounts %}
+          <a class="list-group-item list-group-item-action {% if account and acc.id == account.id %}active{% endif %}"
+             href="{{ url_for('email.mailbox_home', acc=acc.id) }}">
+            <i class="bi bi-at me-2"></i>{{ acc.email_address }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header">Folders</div>
+        <div class="list-group list-group-flush" id="folderTree">
+          <style>
+            .folder-node .row-line { display:flex; align-items:center; gap:.5rem; padding:0 .75rem; }
+            .folder-node .folder-anchor { flex:1 1 auto; display:flex; align-items:center; gap:.5rem; text-decoration:none; }
+            .folder-node .folder-actions { display:flex; gap:.25rem; flex:0 0 auto; }
+            .folder-node .folder-actions .btn { pointer-events:auto; }
+            .folder-node .folder-anchor { position:relative; z-index:1; }
+            .folder-node .folder-actions { position:relative; z-index:2; }
+          </style>
+
+          {% set specials = ['Inbox','Sent','Drafts','Spam','Trash','Archive','All Mail'] %}
+
+          {% macro render_nodes(nodes, parent_id="root", expand_path="") %}
+            {% for n in nodes %}
+              {% set node_id = (parent_id ~ '-' ~ loop.index) %}
+              {% set is_active = ((selected_folder or 'INBOX') == n.full) %}
+              {% set has_children = n.children and n.children|length > 0 %}
+              {% set should_expand = (expand_path and (expand_path == n.full or expand_path.startswith(n.full ~ folder_delim))) %}
+              {% set is_gmail_root = n.full.startswith('[Gmail]') or n.full.startswith('[Google Mail]') %}
+              {% set is_top_level_special = (n.label in specials) and (folder_delim not in n.full) %}
+              {% set is_subfolder = (folder_delim in n.full) and (not is_gmail_root) %}
+
+              <div class="folder-node" data-folder-name="{{ n.full }}">
+                <div class="row-line">
+                  <a class="list-group-item list-group-item-action folder-anchor {% if is_active %}active{% endif %}"
+                     href="{{ url_for('email.mailbox_folder', folder=n.full, acc=(account.id if account else None), expand=expand_path) }}"
+                     aria-label="Open {{ n.label }}">
+                    {% if has_children %}
+                      <button class="btn btn-sm btn-link p-0 folder-toggle"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#c-{{ node_id }}"
+                              data-folder="{{ n.full }}"
+                              aria-expanded="{{ 'true' if should_expand else 'false' }}"
+                              aria-controls="c-{{ node_id }}">
+                        <i class="bi {% if should_expand %}bi-caret-down-fill{% else %}bi-caret-right-fill{% endif %}"></i>
+                      </button>
+                    {% else %}
+                      <span style="width:16px; display:inline-block;"></span>
+                    {% endif %}
+                    <i class="bi bi-folder2{% if is_active %}-open{% endif %}"></i>
+                    <span class="text-truncate">{{ n.label }}</span>
+                  </a>
+
+                  <div class="folder-actions">
+                    <!-- always allow add subfolder -->
+                    <button class="btn btn-sm btn-outline-secondary"
+                            data-action="new-subfolder"
+                            data-parent="{{ n.full }}"
+                            type="button"
+                            title="New subfolder in {{ n.full }}">
+                      <i class="bi bi-folder-plus"></i>
+                    </button>
+
+                    <!-- delete only on subfolders (never on top-level specials or Gmail root) -->
+                    {% if is_subfolder and not is_top_level_special %}
+                    <button class="btn btn-sm btn-outline-danger"
+                            data-action="delete-folder"
+                            data-path="{{ n.full }}"
+                            type="button"
+                            title="Delete folder {{ n.full }}">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    {% endif %}
+                  </div>
+                </div>
+
+                {% if has_children %}
+                  <div id="c-{{ node_id }}"
+                       class="collapse {% if should_expand %}show{% endif %} ms-3"
+                       data-folder="{{ n.full }}">
+                    {{ render_nodes(n.children, node_id, expand_path) }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% endmacro %}
+          {{ render_nodes(folders_tree, "root", expand_path or "") }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="col-md-9">
+      {% if not account %}
+        <div class="alert alert-info">No connected account. Add one in Status.</div>
+      {% else %}
+        <div class="card shadow-sm mb-3">
+          <div class="card-body py-2">
+            <form id="mailToolbar" class="row g-2 align-items-center" method="GET"
+                  action="{{ url_for('email.mailbox_folder', folder=(selected_folder or 'INBOX'), acc=account.id) }}">
+              <div class="col-sm">
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control" name="q" placeholder="Search subject or from..."
+                         value="{{ request.args.get('q','') }}">
+                </div>
+              </div>
+
+              <!-- Sort + Filters combined -->
+              <div class="col-auto">
+                {% set sort = request.args.get('sort','date_desc') %}
+                {% set f_unread  = request.args.get('unread','') %}
+                {% set f_attach  = request.args.get('has_attach','') %}
+                {% set f_last7   = request.args.get('last7','') %}
+
+                <div class="dropdown">
+                  <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-filter-square"></i> Sort & Filters
+                  </button>
+                  <div class="dropdown-menu dropdown-menu-end p-0" style="min-width: 260px;">
+
+                    <!-- Sort section -->
+                    <div class="px-3 py-2 border-bottom">
+                      <div class="small text-muted mb-2">Sort by</div>
+                      <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action py-2 d-flex justify-content-between align-items-center"
+                                type="button" data-action="set-sort" data-value="date_desc">
+                          Date (newest)
+                          {% if sort == 'date_desc' %}<i class="bi bi-check"></i>{% endif %}
+                        </button>
+                        <button class="list-group-item list-group-item-action py-2 d-flex justify-content-between align-items-center"
+                                type="button" data-action="set-sort" data-value="date_asc">
+                          Date (oldest)
+                          {% if sort == 'date_asc' %}<i class="bi bi-check"></i>{% endif %}
+                        </button>
+                        <button class="list-group-item list-group-item-action py-2 d-flex justify-content-between align-items-center"
+                                type="button" data-action="set-sort" data-value="from_asc">
+                          From (A–Z)
+                          {% if sort == 'from_asc' %}<i class="bi bi-check"></i>{% endif %}
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="px-3 py-2">
+                      <div class="small text-muted mb-2">Filters</div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="fUnread"
+                               name="unread" {% if f_unread %}checked{% endif %}>
+                        <label class="form-check-label" for="fUnread">
+                          <i class="bi bi-envelope-open me-1"></i> Unread
+                        </label>
+                      </div>
+                      <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" value="1" id="fAttach"
+                               name="has_attach" {% if f_attach %}checked{% endif %}>
+                        <label class="form-check-label" for="fAttach">
+                          <i class="bi bi-paperclip me-1"></i> Attachments
+                        </label>
+                      </div>
+                      <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" value="1" id="fLast7"
+                               name="last7" {% if f_last7 %}checked{% endif %}>
+                        <label class="form-check-label" for="fLast7">
+                          <i class="bi bi-calendar-week me-1"></i> Last 7 days
+                        </label>
+                      </div>
+                      <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-sm btn-primary flex-grow-1" type="submit">
+                          Apply
+                        </button>
+                        <a class="btn btn-sm btn-light"
+                           href="{{ url_for('email.mailbox_folder', folder=(selected_folder or 'INBOX'), acc=account.id) }}">
+                          Reset
+                        </a>
+                      </div>
+                    </div>
+
+                    <!-- Hidden sort field controlled by the buttons above -->
+                    <input type="hidden" name="sort" id="sortField" value="{{ sort }}">
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="card-footer small text-muted py-1">
+            Folder: <span class="fw-semibold">{{ selected_label or (selected_folder or 'INBOX') }}</span>
+          </div>
+        </div>
+
+        <div class="card shadow-sm">
+          <style>
+            .mail-row .subject { font-weight: 600; }
+            .mail-row .preview { color: #6c757d; }
+            .mail-row .from { color: #0d6efd; }
+            .mail-row .date { white-space: nowrap; }
+            .truncate-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+            .truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .list-hover .list-group-item:hover { background:#f8f9fa; }
+            [data-folder-name].droptarget { background: #e7f1ff !important; }
+            [data-uid].dragging { opacity: .6; }
+          </style>
+
+          <div class="list-group list-group-flush list-hover">
+            {% for m in messages %}
+            <a class="list-group-item list-group-item-action py-3"
+               draggable="true"
+               data-uid="{{ m.uid }}"
+               href="{{ url_for('email.mailbox_message',
+                                folder=(selected_folder or 'INBOX'),
+                                uid=m.uid,
+                                acc=account.id,
+                                mid=m.message_id) }}">
+              <div class="d-flex align-items-start gap-2 mail-row">
+                <div class="pt-1"><i class="bi bi-envelope"></i></div>
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="subject truncate-1">{{ m.subject or "(no subject)" }}</div>
+                    <div class="date small text-muted ms-3">{{ m.date }}</div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mt-1">
+                    <div class="from small truncate-1"><i class="bi bi-person-circle me-1"></i>{{ m.from }}</div>
+                  </div>
+                  {% if m.preview %}
+                  <div class="preview small truncate-2 mt-1">{{ m.preview }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </a>
+            {% else %}
+            <div class="list-group-item py-4 text-center text-muted">No messages found in this folder.</div>
+            {% endfor %}
+          </div>
+
+          <div class="card-footer d-flex justify-content-between align-items-center">
+            <div class="small text-muted">Showing {{ messages|length }} messages</div>
+            <div class="btn-group">
+              <button class="btn btn-outline-secondary btn-sm" disabled><i class="bi bi-chevron-left"></i></button>
+              <button class="btn btn-outline-secondary btn-sm" disabled><i class="bi bi-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- DnD + Create/Delete -->
+<script src="{{ url_for('email.static', filename='email_dnd.js') }}" data-exec></script>
+<script src="{{ url_for('email.static', filename='email_folders.js') }}" data-exec></script>
+
+<!-- Persisted collapse state for folder tree -->
+<script data-exec>
+(function () {
+  var tree = document.getElementById('folderTree');
+  if (!tree) return;
+
+  var LS_KEY = "email.folder.collapse.v1";
+
+  function readState() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch (e) { return {}; }
+  }
+  function writeState(s) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch (e) {}
+  }
+
+  var state = readState();
+  tree.querySelectorAll('.collapse[data-folder]').forEach(function(el){
+    var path = el.getAttribute('data-folder');
+    var desired = state[path];
+    var btn = tree.querySelector('.folder-toggle[data-folder="' + CSS.escape(path) + '"] i.bi');
+    if (desired === "open") { el.classList.add('show'); if (btn) { btn.classList.replace('bi-caret-right-fill','bi-caret-down-fill'); } }
+    else if (desired === "closed") { el.classList.remove('show'); if (btn) { btn.classList.replace('bi-caret-down-fill','bi-caret-right-fill'); } }
+  });
+
+  tree.addEventListener('shown.bs.collapse', function (e) {
+    var id = e.target.getAttribute('data-folder');
+    var icon = tree.querySelector('.folder-toggle[data-folder="' + CSS.escape(id) + '"] i.bi');
+    if (icon) { icon.classList.replace('bi-caret-right-fill','bi-caret-down-fill'); }
+    var s = readState(); s[id] = "open"; writeState(s);
+  });
+  tree.addEventListener('hidden.bs.collapse', function (e) {
+    var id = e.target.getAttribute('data-folder');
+    var icon = tree.querySelector('.folder-toggle[data-folder="' + CSS.escape(id) + '"] i.bi');
+    if (icon) { icon.classList.replace('bi-caret-down-fill','bi-caret-right-fill'); }
+    var s = readState(); s[id] = "closed"; writeState(s);
+  });
+
+  // Stop navigation when clicking caret / plus / delete
+  tree.addEventListener('click', function (e) {
+    if (e.target.closest('.folder-toggle') || e.target.closest('[data-action="new-subfolder"]') || e.target.closest('[data-action="delete-folder"]')) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+})();
+</script>
+
+<!-- Sort submit helper -->
+<script data-exec>
+(function(){
+  var form = document.getElementById('mailToolbar');
+  if (!form) return;
+  form.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="set-sort"]');
+    if (!btn) return;
+    e.preventDefault();
+    var v = btn.getAttribute('data-value') || 'date_desc';
+    var fld = document.getElementById('sortField');
+    if (fld) fld.value = v;
+    form.submit();
+  });
+})();
+</script>

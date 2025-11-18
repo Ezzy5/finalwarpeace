@@ -1,0 +1,56 @@
+<div class="modal fade" id="FiltersModal" tabindex="-1" aria-labelledby="FiltersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 id="FiltersModalLabel" class="modal-title">Search & Filters</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="FiltersForm" class="modal-body">
+        {{ filter_form.csrf_token }}
+        <div class="mb-3">
+          <label class="form-label">Search</label>
+          {{ filter_form.q(class="form-control", placeholder="Title, description…") }}
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Role filters</label>
+            <div class="form-check">
+              {{ filter_form.show_invitations(class="form-check-input", id="f_inv") }}
+              <label class="form-check-label" for="f_inv">Invitations</label>
+            </div>
+            <div class="form-check">
+              {{ filter_form.i_am_organiser(class="form-check-input", id="f_org") }}
+              <label class="form-check-label" for="f_org">I am an organiser</label>
+            </div>
+            <div class="form-check">
+              {{ filter_form.i_am_participant(class="form-check-input", id="f_part") }}
+              <label class="form-check-label" for="f_part">I am a participant</label>
+            </div>
+            <div class="form-check">
+              {{ filter_form.i_declined(class="form-check-input", id="f_decl") }}
+              <label class="form-check-label" for="f_decl">I declined</label>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Period</label>
+            {{ filter_form.period(class="form-select", id="f_period") }}
+            <div class="mt-2" id="f_next_n_wrap" style="display:none;">
+              <label class="form-label">Next N days</label>
+              {{ filter_form.next_n_days(class="form-control", placeholder="e.g. 7") }}
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary js-apply-filters" data-bs-dismiss="modal">
+          <i class="bi bi-search"></i> Apply
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

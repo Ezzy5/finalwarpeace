@@ -1,0 +1,57 @@
+/* glassmorphism + modern feed */
+:root {
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --border: rgba(0,0,0,0.06);
+  --muted: #6b7280;
+}
+.feed-wrap { max-width: 960px; margin: 0 auto; padding: 1rem; }
+.feed-grid { display: grid; gap: 1rem; }
+.glass { backdrop-filter: blur(10px); background: var(--card-bg); border-radius: 18px; border: 1px solid var(--border); }
+.feed-card { overflow: hidden; }
+.feed-card .hdr { display:flex; gap:12px; align-items:center; padding:14px; }
+.feed-card .avatar { width:44px; height:44px; border-radius:50%; object-fit:cover; box-shadow:0 1px 4px rgba(0,0,0,.12);}
+.feed-card .title { font-weight:700; margin: 0 14px; }
+.feed-card .meta { color: var(--muted); font-size: .85rem; }
+.feed-card .body { padding: 0 14px 8px; font-size: 1.05rem; line-height:1.48; }
+.feed-card .attachments { padding: 6px 14px 10px; display:flex; flex-wrap:wrap; gap:10px; }
+.attach { width:120px; height:90px; border:1px dashed #e5e7eb; border-radius:12px; background:#f9fafb; display:flex; align-items:center; justify-content:center; overflow:hidden; text-decoration:none; }
+.attach img { width:100%; height:100%; object-fit:cover; }
+.feed-card .actions { border-top:1px solid var(--border); padding:8px 14px; display:flex; justify-content:space-between; align-items:center; }
+.btn-chip { border:1px solid #c7d2fe; border-radius:999px; padding:6px 10px; background:#eef2ff; cursor:pointer; font-weight:600; }
+.btn-chip:hover { filter: brightness(0.98); }
+.rx { color: var(--muted); font-size:.9rem; }
+.comments { padding: 6px 14px 14px; }
+.comment { display:flex; gap:8px; padding:6px 0; }
+.comment .avatar { width:28px; height:28px; border-radius:50%; object-fit:cover; }
+.comment .box { background:#f8fafc; border:1px solid #eef2f7; border-radius:12px; padding:.5rem .75rem; }
+.composer { margin-bottom: 1rem; }
+.composer .row { display:flex; gap:10px; flex-wrap:wrap; }
+.composer textarea { min-height: 120px; }
+.input, .select, .textarea { width:100%; border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+.pill { display:inline-block; padding:6px 10px; border-radius:999px; font-size:.8rem; }
+.pill.public { background:#ecfdf5; border:1px solid #d1fae5; }
+.pill.sector { background:#eff6ff; border:1px solid #dbeafe; }
+.pill.users { background:#fff7ed; border:1px solid #ffedd5; }
+.toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.preview-tray { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.preview-tile { width:96px; height:72px; border:1px dashed #e5e7eb; border-radius:10px; overflow:hidden; background:#f9fafb; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.preview-tile img { width:100%; height:100%; object-fit:cover; }
+.loadmore { margin: 12px auto; display:block; }
+
+
+/* feed size */
+
+#FeedPanel {
+  display: flex;
+  justify-content: center;
+}
+
+#feed-root {
+  width: 100%;
+  max-width: 1100px;      /* ✅ controls how wide the feed can get */
+  padding: 0 24px;       /* ✅ small left/right breathing room */
+  box-sizing: border-box;
+}
+
+/* ------------------------ tagged user list -------------------*/
+

@@ -1,0 +1,111 @@
+{% raw %}
+<div class="modal fade" id="TemplatesModal" tabindex="-1" aria-labelledby="TemplatesModalLabel" aria-hidden="true" data-exec>
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="TemplatesModalLabel">Шаблони за договори</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Затвори"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="text-muted small">
+            Креирајте шаблон како <code>DOCX</code> (Word) или <code>HTML</code>.
+          </div>
+          <button class="btn btn-primary btn-sm" data-action="tpl-open-create">+ Нов шаблон</button>
+        </div>
+
+        <div id="TemplatesEmpty" class="text-muted">Нема шаблони.</div>
+        <div id="TemplatesList" class="list-group mb-3"></div>
+
+        <div id="TemplateEditor" class="card d-none">
+          <div class="card-header">Уредувач на шаблон</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Име</label>
+                <input type="text" id="tpl-name" class="form-control" placeholder="Пр. Договор за вработување">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Тип</label>
+                <select id="tpl-type" class="form-select">
+                  <option value="docx">docx (Word)</option>
+                  <option value="html">html (WYSIWYG)</option>
+                </select>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label">Опис (опционално)</label>
+                <input type="text" id="tpl-desc" class="form-control" placeholder="Краток опис">
+              </div>
+
+              <!-- DOCX upload -->
+              <div class="col-12" id="tpl-docx-wrap" style="display:none">
+                <label class="form-label">DOCX датотека (Word шаблон)</label>
+                <input type="file" id="tpl-docx-file" class="form-control" accept=".docx">
+                <div class="form-text">
+                  Во DOCX користете placeholders, пример: <code>{{ full_name }}</code>, <code>{{ months_display }}</code>, <code>{{ end_date_display }}</code>, <code>{{ start_date }}</code>.
+                </div>
+              </div>
+
+              <!-- HTML editor -->
+              <div class="col-12" id="tpl-wysi-wrap" style="display:none">
+                <div class="d-flex gap-2 flex-wrap mb-2">
+                  <select id="tpl-font" class="form-select form-select-sm" style="width:auto">
+                    <option value="inherit">Фонт</option>
+                    <option>Arial</option>
+                    <option>Times New Roman</option>
+                    <option>Calibri</option>
+                    <option>Cambria</option>
+                    <option>Georgia</option>
+                  </select>
+                  <select id="tpl-size" class="form-select form-select-sm" style="width:auto">
+                    <option value="">Големина</option>
+                    <option value="12px">12</option>
+                    <option value="14px">14</option>
+                    <option value="16px">16</option>
+                    <option value="18px">18</option>
+                    <option value="20px">20</option>
+                    <option value="24px">24</option>
+                  </select>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-secondary" data-wysi="bold"><b>B</b></button>
+                    <button class="btn btn-outline-secondary" data-wysi="italic"><i>I</i></button>
+                    <button class="btn btn-outline-secondary" data-wysi="underline"><u>U</u></button>
+                  </div>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-secondary" data-wysi="left">Лево</button>
+                    <button class="btn btn-outline-secondary" data-wysi="center">Центар</button>
+                    <button class="btn btn-outline-secondary" data-wysi="right">Десно</button>
+                    <button class="btn btn-outline-secondary" data-wysi="justify">Justify</button>
+                  </div>
+                </div>
+                <div id="tpl-wysi" contenteditable="true" class="form-control" style="min-height:320px; overflow:auto;"></div>
+                <div class="form-text">
+                  Можете да вметнете placeholders: <code>{{ first_name }}</code>, <code>{{ last_name }}</code>, <code>{{ full_name }}</code>,
+                  <code>{{ months_display }}</code>, <code>{{ end_date_display }}</code>, <code>{{ start_date|date('%d.%m.%Y') }}</code>, итн.
+                </div>
+              </div>
+
+              <!-- Hidden textarea to hold HTML content value -->
+              <textarea id="tpl-content" class="form-control d-none" rows="1"></textarea>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+              <button class="btn btn-success" data-action="tpl-save">Зачувај</button>
+              <button class="btn btn-outline-secondary" data-action="tpl-cancel">Откажи</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Затвори</button>
+      </div>
+
+      <!-- Load the controller -->
+      <script src="{{ url_for('users.static', filename='template.js') }}" data-exec></script>
+    </div>
+  </div>
+</div>
+{% endraw %}

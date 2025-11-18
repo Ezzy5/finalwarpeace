@@ -1,0 +1,183 @@
+<!-- app/email/templates/email/compose.html -->
+<div id="EmailPanel" class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">✉️ Compose</h2>
+    {% if account %}
+    <div class="text-muted small">{{ account.email_address }}</div>
+    {% endif %}
+  </div>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  {% if not account %}
+    <div class="alert alert-info">No connected account. Add one in Status.</div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form id="composeForm"
+            method="POST"
+            action="{{ url_for('email.compose', acc=account.id) }}"
+            enctype="multipart/form-data"
+            autocomplete="off" novalidate>
+        <input type="hidden" name="acc" value="{{ account.id }}">
+        <input type="hidden" name="is_html" id="is_html" value="1">
+
+        <div class="mb-2">
+          <label class="form-label">From</label>
+          <div class="input-group">
+            <span class="input-group-text">@</span>
+            <input type="text" class="form-control" value="{{ account.email_address }}" disabled>
+          </div>
+          <div class="row mt-2">
+            <div class="col-sm-6">
+              <input class="form-control" type="text" name="display_name"
+                     placeholder="Display name (optional)"
+                     value="{{ account.display_name or '' }}">
+            </div>
+            <div class="col-sm-6 mt-2 mt-sm-0">
+              <input class="form-control" type="email" name="reply_to"
+                     placeholder="Reply-To (optional)"
+                     value="{{ account.reply_to or '' }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">To *</label>
+          <input class="form-control" type="text" name="to" placeholder="recipient@example.com, other@example.com" required>
+        </div>
+
+        <div class="mb-2">
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label">Cc</label>
+              <input class="form-control" type="text" name="cc" placeholder="optional">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Bcc</label>
+              <input class="form-control" type="text" name="bcc" placeholder="optional">
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Subject</label>
+          <input class="form-control" type="text" name="subject" placeholder="Subject">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Message (HTML)</label>
+          <textarea class="form-control" name="body" rows="10" placeholder="Write your message..."></textarea>
+          <div class="form-text">Tip: this sends as HTML. Uncheck “HTML” to send as plain text.</div>
+          <div class="form-check mt-1">
+            <input class="form-check-input" type="checkbox" id="htmlToggle" checked>
+            <label class="form-check-label" for="htmlToggle">HTML</label>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Attachments</label>
+          <input class="form-control" type="file" name="attachments" multiple>
+        </div>
+
+        <div class="d-flex gap-2 align-items-center">
+          <button id="sendBtn" class="btn btn-primary" type="submit">
+            <i class="bi bi-send me-1"></i> <span>Send</span>
+          </button>
+          <a class="btn btn-outline-secondary" href="{{ url_for('email.mailbox_home', acc=account.id) }}">
+            Cancel
+          </a>
+          <div id="sendSpinner" class="ms-2 small text-muted" style="display:none;">
+            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Sending…
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script data-exec>
+(function(){
+  // Toggle HTML/plain
+  var toggle = document.getElementById('htmlToggle');
+  var flag = document.getElementById('is_html');
+  if (toggle && flag) {
+    toggle.addEventListener('change', function(){
+      flag.value = this.checked ? '1' : '0';
+    });
+  }
+
+  var form = document.getElementById('composeForm');
+  if (!form) return;
+
+  // ✅ Prevent multiple bindings when this inline script runs again (SPA reloads)
+  if (form.dataset.bound === '1') {
+    return;
+  }
+  form.dataset.bound = '1';
+
+  var sendBtn = document.getElementById('sendBtn');
+  var sendSpinner = document.getElementById('sendSpinner');
+  var isSubmitting = false;
+
+  function setBusy(busy) {
+    isSubmitting = !!busy;
+    if (sendBtn) {
+      sendBtn.disabled = busy;
+      var span = sendBtn.querySelector('span');
+      if (span) span.textContent = busy ? 'Sending…' : 'Send';
+    }
+    if (sendSpinner) sendSpinner.style.display = busy ? '' : 'none';
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if (isSubmitting) return; // debounce
+
+    // Basic front-end validation for To:
+    var toVal = (form.querySelector('[name="to"]')?.value || '').trim();
+    if (!toVal) {
+      alert('Recipient (To) is required.');
+      return;
+    }
+
+    setBusy(true);
+    var fd = new FormData(form);
+
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-Requested-With': 'fetch' }, // server returns JSON path
+        credentials: 'same-origin',
+        keepalive: false
+      });
+
+      let json = {};
+      try { json = await res.json(); } catch(_){}
+
+      if (!res.ok || json.ok === false) {
+        const msg = (json && (json.error || json.message)) || ('HTTP ' + res.status);
+        alert('Send failed:\n' + msg);
+        setBusy(false);
+        return;
+      }
+
+      // success → redirect to Sent (server returns redirect)
+      if (json.redirect) {
+        window.location.href = json.redirect;
+      } else {
+        window.location.href = "{{ url_for('email.mailbox_home', acc=account.id) }}";
+      }
+    } catch (err) {
+      console.error('Compose send error:', err);
+      alert('Send failed:\n' + (err && err.message ? err.message : String(err)));
+      setBusy(false);
+    }
+  }, false);
+})();
+</script>

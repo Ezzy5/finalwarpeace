@@ -1,0 +1,413 @@
+<!-- app/users/templates/panel.html -->
+<section id="UsersPanel" data-api-base="/users/api">
+  <div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h5 class="mb-0">Users</h5>
+
+      <!-- Create button (hidden if user lacks users.create_edit) -->
+      <button
+        class="btn btn-sm btn-primary"
+        id="btnToggleCreate"
+        type="button"
+        data-perm-any="users.create_edit"
+      >
+        + Create
+      </button>
+    </div>
+
+    <!-- Create form (hidden by default; also hidden by perms) -->
+    <div
+      id="CreateUserWrap"
+      class="card-body border-bottom d-none"
+      data-perm-any="users.create_edit"
+    >
+      <form id="CreateUserForm" novalidate>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label" for="CreateFirstName">First name</label>
+            <input class="form-control" id="CreateFirstName" name="first_name" required>
+            <div class="text-danger small" data-err="first_name"></div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label" for="CreateLastName">Last name</label>
+            <input class="form-control" id="CreateLastName" name="last_name" required>
+            <div class="text-danger small" data-err="last_name"></div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label" for="CreateEmail">Email</label>
+            <input class="form-control" id="CreateEmail" type="email" name="email">
+            <div class="text-danger small" data-err="email"></div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label" for="CreatePassword">Password</label>
+            <input class="form-control" id="CreatePassword" name="password" type="password" required minlength="8" autocomplete="new-password">
+            <div class="text-danger small" data-err="password"></div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label" for="CreatePassword2">Confirm password</label>
+            <input class="form-control" id="CreatePassword2" name="password2" type="password" required minlength="8" autocomplete="new-password">
+            <div class="text-danger small" data-err="password2"></div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label" for="CreatePhone">Phone</label>
+            <input class="form-control" id="CreatePhone" name="phone_number" inputmode="numeric" pattern="[0-9]*" data-digits-only data-invalid-numbers="1">
+            <div class="text-danger small" data-err="phone_number"></div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label" for="CreateIdNumber">ID number</label>
+            <input class="form-control" id="CreateIdNumber" name="id_number">
+            <div class="text-danger small" data-err="id_number"></div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label" for="CreateEmbg">EMBG</label>
+            <input class="form-control" id="CreateEmbg" name="embg" inputmode="numeric" pattern="[0-9]*" maxlength="13" data-digits-only data-invalid-numbers="1">
+            <div class="text-danger small" data-err="embg"></div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label" for="CreateVacationDays">Vacation days</label>
+            <input class="form-control" id="CreateVacationDays" type="text" name="vacation_days" inputmode="numeric" pattern="[0-9]*" data-digits-only data-invalid-numbers="1">
+            <div class="text-danger small" data-err="vacation_days"></div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="CreateBankAccount">Трансакциска сметка</label>
+            <input class="form-control" id="CreateBankAccount" name="bank_account" inputmode="numeric" pattern="[0-9]*" data-digits-only data-invalid-numbers="1">
+            <div class="text-danger small" data-err="bank_account"></div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="CreateCity">Град</label>
+            <select class="form-select" id="CreateCity" name="city">
+              <option value="">— Одбери град —</option>
+              <option>Скопје</option>
+              <option>Битола</option>
+              <option>Куманово</option>
+              <option>Прилеп</option>
+              <option>Тетово</option>
+              <option>Велес</option>
+              <option>Охрид</option>
+              <option>Штип</option>
+              <option>Струмица</option>
+              <option>Кавадарци</option>
+              <option>Гостивар</option>
+              <option>Кочани</option>
+              <option>Кичево</option>
+              <option>Струга</option>
+              <option>Гевгелија</option>
+              <option>Свети Николе</option>
+              <option>Дебар</option>
+              <option>Крива Паланка</option>
+              <option>Радовиш</option>
+              <option>Пробиштип</option>
+              <option>Виница</option>
+              <option>Делчево</option>
+              <option>Ресен</option>
+              <option>Неготино</option>
+              <option>Валандово</option>
+              <option>Берово</option>
+              <option>Кратово</option>
+              <option>Демир Хисар</option>
+              <option>Демир Капија</option>
+              <option>Македонски Брод</option>
+              <option>Крушево</option>
+              <option>Пехчево</option>
+              <option>Богданци</option>
+              <option>Македонска Каменица</option>
+            </select>
+            <div class="text-danger small" data-err="city"></div>
+          </div>
+
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="CreateIsAdmin">
+              <label class="form-check-label" for="CreateIsAdmin">Administrator</label>
+              <input type="hidden" id="CreateIsAdminHidden" name="is_admin" value="">
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="CreateAddress">Адреса на живеење</label>
+            <input class="form-control" id="CreateAddress" name="address">
+            <div class="text-danger small" data-err="address"></div>
+          </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-success btn-sm" type="submit">Save</button>
+          <button class="btn btn-outline-secondary btn-sm" id="btnCancelCreate" type="button">Cancel</button>
+        </div>
+        <div class="text-danger small mt-2" data-err="__global"></div>
+      </form>
+    </div>
+
+    <div class="card-body p-0">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th style="width:56px">#</th>
+            <th>First name</th>
+            <th>Last name</th>
+            <th>Department</th>
+            <!-- Hide Actions header if user lacks ALL action perms -->
+            <th style="width:200px" data-perm-any="users.create_edit,users.rewards,users.penalty"></th>
+          </tr>
+        </thead>
+        <tbody id="UsersTable"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Edit User modal -->
+<div class="modal" id="userEditModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <form id="EditUserForm" novalidate>
+        <div class="modal-header">
+          <h5 class="modal-title">Edit User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body no-scrollbar pb-4">
+          <input type="hidden" id="EditUserId" name="id">
+
+          <div class="row g-3">
+            <!-- Mark inputs that require users.create_edit with data-requires-edit -->
+            <div class="col-md-6">
+              <label class="form-label">First name</label>
+              <input class="form-control" id="EditFirstName" name="first_name" required data-requires-edit>
+              <div class="text-danger small" data-err="first_name"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Last name</label>
+              <input class="form-control" id="EditLastName" name="last_name" required data-requires-edit>
+              <div class="text-danger small" data-err="last_name"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input class="form-control" id="EditEmail" name="email" type="email" data-requires-edit>
+              <div class="text-danger small" data-err="email"></div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="EditNewPassword">New password</label>
+              <input class="form-control" id="EditNewPassword" name="new_password" type="password" minlength="8" autocomplete="new-password" data-requires-edit>
+              <div class="text-danger small" data-err="new_password"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="EditNewPassword2">Confirm new password</label>
+              <input class="form-control" id="EditNewPassword2" name="new_password2" type="password" minlength="8" autocomplete="new-password" data-requires-edit>
+              <div class="text-danger small" data-err="new_password2"></div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Phone</label>
+              <input class="form-control" id="EditPhone" name="phone_number" inputmode="numeric" pattern="[0-9]*" data-digits-only data-invalid-numbers="1" data-requires-edit>
+              <div class="text-danger small" data-err="phone_number"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">ID number</label>
+              <input class="form-control" id="EditIdNumber" name="id_number" data-requires-edit>
+              <div class="text-danger small" data-err="id_number"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">EMBG</label>
+              <input class="form-control" id="EditEmbg" name="embg" inputmode="numeric" pattern="[0-9]*" maxlength="13" data-digits-only data-invalid-numbers="1" data-requires-edit>
+              <div class="text-danger small" data-err="embg"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Vacation days</label>
+              <input class="form-control" id="EditVacationDays" name="vacation_days" type="text" inputmode="numeric" pattern="[0-9]*" data-digits-only data-invalid-numbers="1" data-requires-edit>
+              <div class="text-danger small" data-err="vacation_days"></div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Трансакциска сметка</label>
+              <input class="form-control" id="EditBankAccount" name="bank_account" inputmode="numeric" pattern="[0-9]*" data-digits-only data-invalid-numbers="1" data-requires-edit>
+              <div class="text-danger small" data-err="bank_account"></div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Град</label>
+              <select class="form-select" id="EditCity" name="city" data-requires-edit>
+                <option value="">— Одбери град —</option>
+                <option>Скопје</option>
+                <option>Битола</option>
+                <option>Куманово</option>
+                <option>Прилеп</option>
+                <option>Тетово</option>
+                <option>Велес</option>
+                <option>Охрид</option>
+                <option>Штип</option>
+                <option>Струмица</option>
+                <option>Кавадарци</option>
+                <option>Гостивар</option>
+                <option>Кочани</option>
+                <option>Кичево</option>
+                <option>Струга</option>
+                <option>Гевгелија</option>
+                <option>Свети Николе</option>
+                <option>Дебар</option>
+                <option>Крива Паланка</option>
+                <option>Радовиш</option>
+                <option>Пробиштип</option>
+                <option>Виница</option>
+                <option>Делчево</option>
+                <option>Ресен</option>
+                <option>Неготино</option>
+                <option>Валандово</option>
+                <option>Берово</option>
+                <option>Кратово</option>
+                <option>Демир Хисар</option>
+                <option>Демир Капија</option>
+                <option>Македонски Брод</option>
+                <option>Крушево</option>
+                <option>Пехчево</option>
+                <option>Богданци</option>
+                <option>Македонска Каменица</option>
+              </select>
+              <div class="text-danger small" data-err="city"></div>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-end">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="EditIsAdmin" data-requires-edit>
+                <label class="form-check-label" for="EditIsAdmin">Administrator</label>
+                <input type="hidden" id="EditIsAdminHidden" name="is_admin" value="">
+              </div>
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label">Адреса на живеење</label>
+              <input class="form-control" id="EditAddress" name="address" data-requires-edit>
+              <div class="text-danger small" data-err="address"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer sticky-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+          <button class="btn btn-primary" type="submit" data-perm-any="users.create_edit">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modules -->
+<script src="/static/rewards.js"></script>
+<script src="/static/users/mountUsersPanel.js"></script>
+
+<style>
+  .modal-dialog-scrollable .modal-body.no-scrollbar {
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    max-height: calc(95vh - 120px);
+  }
+  .modal-dialog-scrollable .modal-body.no-scrollbar::-webkit-scrollbar { width: 0; height: 0; }
+  .modal .modal-footer.sticky-footer {
+    position: sticky; bottom: 0; background: var(--bs-body-bg,#fff); z-index: 2;
+    border-top: 1px solid var(--bs-border-color, rgba(0,0,0,.125));
+  }
+  .modal-dialog.modal-dialog-scrollable { max-height: 95vh; }
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  // --- PERMISSIONS: hide elements unless user has required code(s) ---
+  function hasPerm(code) {
+    const codes = Array.isArray(window.__EFFECTIVE_CODES) ? new Set(window.__EFFECTIVE_CODES) : null;
+    if (codes) return codes.has(code);
+    const P = window.USERS_PERMS || {};
+    if (code === "users.create_edit") return !!P.createEdit;
+    if (code === "users.view") return !!P.view;
+    if (code === "users.rewards") return !!P.rewards;
+    if (code === "users.penalty") return !!P.penalty;
+    return false;
+  }
+  function checkPermAny(attr) {
+    const raw = attr?.trim(); if (!raw) return true;
+    return raw.split(",").map(s => s.trim()).some(code => hasPerm(code));
+  }
+  function checkPermAll(attr) {
+    const raw = attr?.trim(); if (!raw) return true;
+    return raw.split(",").map(s => s.trim()).every(code => hasPerm(code));
+  }
+  function applyPermissionHiding(root) {
+    root.querySelectorAll("[data-perm-any]").forEach(el => {
+      if (!checkPermAny(el.getAttribute("data-perm-any"))) el.remove();
+    });
+    root.querySelectorAll("[data-perm-all]").forEach(el => {
+      if (!checkPermAll(el.getAttribute("data-perm-all"))) el.remove();
+    });
+    const canEdit = hasPerm("users.create_edit");
+    if (!canEdit) {
+      root.querySelectorAll("[data-requires-edit]").forEach(el => el.setAttribute("disabled","disabled"));
+    }
+  }
+
+  // --- Numbers-only enforcement + friendly message ---
+  function wireDigitsOnly(root) {
+    const INVALID_MSG = "Invalid format! Numbers only";
+    root.addEventListener("input", (e) => {
+      const el = e.target.closest("[data-digits-only]");
+      if (!el) return;
+      const old = el.value;
+      const cleaned = old.replace(/\D+/g, "");
+      if (old !== cleaned) el.value = cleaned;
+      if (el.hasAttribute("data-invalid-numbers")) el.setCustomValidity("");
+    }, true);
+    root.addEventListener("invalid", (e) => {
+      const el = e.target.closest("[data-invalid-numbers]");
+      if (!el) return;
+      e.preventDefault();
+      el.setCustomValidity(INVALID_MSG);
+      el.reportValidity();
+    }, true);
+    root.addEventListener("blur", (e) => {
+      const el = e.target.closest("[data-invalid-numbers]");
+      if (!el) return;
+      if (/^\d*$/.test(el.value)) el.setCustomValidity("");
+    }, true);
+  }
+
+  function wireModalA11y() {
+    const modalEl = document.getElementById("userEditModal");
+    if (!modalEl) return;
+    modalEl.addEventListener("show.bs.modal", () => modalEl.removeAttribute("aria-hidden"));
+    modalEl.addEventListener("hidden.bs.modal", () => modalEl.setAttribute("aria-hidden", "true"));
+  }
+
+  function mountPanel() {
+    if (typeof window.mountUsersPanel === "function") {
+      window.mountUsersPanel("#UsersPanel");
+    } else {
+      console.warn("mountUsersPanel not found. Ensure /static/users/mountUsersPanel.js is loaded.");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const root = document.getElementById("UsersPanel") || document.body;
+    applyPermissionHiding(root);
+    wireDigitsOnly(root);
+    wireModalA11y();
+    mountPanel();
+  });
+
+  window.addEventListener("perms:ready", function () {
+    const root = document.getElementById("UsersPanel") || document.body;
+    applyPermissionHiding(root);
+  });
+})();
+</script>

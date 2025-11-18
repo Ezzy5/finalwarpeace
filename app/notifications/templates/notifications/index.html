@@ -1,0 +1,204 @@
+<div id="NotificationsPanel" class="container py-4" data-init="mountNotificationsPanel">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0"><i class="bi bi-bell me-2"></i>Нотификации</h2>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" id="btnRefreshNotifs" type="button">
+        <i class="bi bi-arrow-repeat"></i> Освежи
+      </button>
+      <button class="btn btn-outline-primary" id="btnMarkAllRead" type="button">
+        <i class="bi bi-check2-all"></i> Обележи ги сите како прочитани
+      </button>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+    <div class="form-check form-switch">
+      <input class="form-check-input" type="checkbox" id="switchOnlyUnread">
+      <label class="form-check-label" for="switchOnlyUnread">Само непрочитани</label>
+    </div>
+    <span class="badge text-bg-info" id="badgeUnread">Непрочитани: 0</span>
+  </div>
+
+  <ul class="list-group" id="notifList" aria-live="polite"></ul>
+
+  <div class="d-flex justify-content-center mt-3">
+    <button class="btn btn-outline-secondary d-none" id="btnLoadMore" type="button">Прикажи повеќе</button>
+  </div>
+</div>
+
+<script data-exec>
+(function () {
+  // --- helpers ---
+  function esc(s){
+    return String(s ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#39;");
+  }
+
+  function pickTs(n) {
+    return n.created_at_local || n.created_at_utc || n.created_at || "";
+  }
+
+  function fmtDT(n){
+    const ts = pickTs(n);
+    if (!ts) return "";
+    try {
+      const d = new Date(ts);
+      return d.toLocaleString('mk-MK', {
+        year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', hour12:false
+      });
+    } catch(_e) { return ts; }
+  }
+
+  function kind(n){ return n?.meta?.type || ""; }
+  function infoIcon(){ return '<i class="bi bi-info-circle me-1"></i>'; }
+
+  function rsvpActionWord(t){
+    if (t === 'event_rsvp_accepted') return 'has accepted the invite';
+    if (t === 'event_rsvp_declined') return 'has declined the invite';
+    if (t === 'event_rsvp_tentative') return 'is tentative for the invite';
+    return 'updated';
+  }
+
+  function rsvpInline(n){
+    const t = kind(n);
+    const who = esc(n?.meta?.actor_name || n?.meta?.actor || 'User');
+    const ev  = esc(n?.meta?.title || n?.title || 'event');
+    return infoIcon() + who + ' ' + rsvpActionWord(t) + ' ' + ev;
+  }
+
+  function itemHtml(n){
+    const t = kind(n);
+    const isUnread = !n.is_read;
+    const when  = fmtDT(n);
+    const body  = esc(n.body || n.context_text || "");
+
+    // RSVP layout (НОВО + "Одговор на покана:" on same line, then info line, then date; button on the right)
+    if (t.startsWith('event_rsvp_')) {
+      return (
+        '<li class="list-group-item">' +
+          '<div class="d-flex justify-content-between align-items-start gap-3">' +
+            '<div class="flex-grow-1 d-flex flex-column">' +
+              '<div class="d-flex align-items-center gap-2 mb-1">' +
+                (isUnread ? '<span class="badge rounded-pill text-bg-danger">НОВО</span>' : '') +
+                '<span class="fw-semibold">Одговор на покана:</span>' +
+              '</div>' +
+              '<div class="ms-1">' + rsvpInline(n) + '</div>' +
+              (when ? '<div class="text-muted small mt-1">'+ when +'</div>' : '') +
+            '</div>' +
+            (isUnread
+              ? '<button type="button" class="btn btn-sm btn-outline-success" data-action="mark-read" data-id="'+n.id+'">Означи како прочитано</button>'
+              : ''
+            ) +
+          '</div>' +
+        '</li>'
+      );
+    }
+
+    // Fallback layout for other notification kinds (keeps "mark as read" on the right)
+    const badge = isUnread ? '<span class="badge rounded-pill text-bg-danger me-2">НОВО</span>' : '';
+    return (
+      '<li class="list-group-item">' +
+        '<div class="d-flex justify-content-between align-items-start gap-3">' +
+          '<div class="flex-grow-1 d-flex flex-column">' +
+            '<div class="d-flex align-items-center flex-wrap">' +
+              badge + '<span class="fw-semibold">' + esc(n.title || "(без наслов)") + '</span>' +
+            '</div>' +
+            (body ? '<div class="text-muted mt-1">'+ body +'</div>' : '') +
+            (when ? '<div class="text-muted small mt-1">'+ when +'</div>' : '') +
+          '</div>' +
+          (isUnread
+            ? '<button type="button" class="btn btn-sm btn-outline-success" data-action="mark-read" data-id="'+n.id+'">Означи како прочитано</button>'
+            : ''
+          ) +
+        '</div>' +
+      '</li>'
+    );
+  }
+
+  // --- main mount ---
+  window.mountNotificationsPanel = function(selector){
+    const root = document.querySelector(selector || "#NotificationsPanel");
+    if (!root) return;
+
+    const listEl = root.querySelector("#notifList");
+    const unreadBadge = root.querySelector("#badgeUnread");
+    const onlyUnreadSwitch = root.querySelector("#switchOnlyUnread");
+    const btnRefresh = root.querySelector("#btnRefreshNotifs");
+    const btnMarkAll = root.querySelector("#btnMarkAllRead");
+    const btnMore = root.querySelector("#btnLoadMore");
+
+    let page=1, perPage=20, onlyUnread=false;
+
+    async function fetchUnreadCount(){
+      try{
+        const r = await fetch("/notifications/api/notifications/count", {credentials:"same-origin"});
+        if (!r.ok) return;
+        const j = await r.json();
+        unreadBadge.textContent = "Непрочитани: " + (j.unread || 0);
+      }catch(_e){}
+    }
+
+    async function fetchPage(reset){
+      if (reset){ page=1; listEl.innerHTML=""; }
+      const url = new URL("/notifications/api/notifications", window.location.origin);
+      url.searchParams.set("page", String(page));
+      url.searchParams.set("per_page", String(perPage));
+      if (onlyUnread) url.searchParams.set("only_unread","true");
+
+      btnMore.classList.add("d-none");
+      const res = await fetch(url, {credentials:"same-origin"});
+      if (!res.ok) throw new Error("HTTP "+res.status);
+      const data = await res.json();
+
+      (data.items || []).forEach(n => listEl.insertAdjacentHTML("beforeend", itemHtml(n)));
+      if (data.pages && page < data.pages) btnMore.classList.remove("d-none");
+      await fetchUnreadCount();
+    }
+
+    // Events
+    onlyUnreadSwitch.addEventListener("change", ()=>{
+      onlyUnread = !!onlyUnreadSwitch.checked;
+      fetchPage(true).catch(console.error);
+    });
+    btnRefresh.addEventListener("click", ()=> fetchPage(true).catch(console.error));
+    btnMore.addEventListener("click", ()=> { page += 1; fetchPage(false).catch(console.error); });
+
+    listEl.addEventListener("click", async function(e){
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      e.preventDefault();
+
+      const action = btn.getAttribute("data-action");
+      if (action === "mark-read"){
+        const id = btn.getAttribute("data-id");
+        const r = await fetch("/notifications/api/notifications/"+id+"/read", {
+          method:"POST", credentials:"same-origin",
+          headers: {"X-CSRFToken": window.CSRF_TOKEN || ""}
+        });
+        if (r.ok) fetchPage(true).catch(console.error);
+      }
+    });
+
+    btnMarkAll.addEventListener("click", async ()=>{
+      const r = await fetch("/notifications/api/notifications/read-all", {
+        method:"POST", credentials:"same-origin",
+        headers: {"X-CSRFToken": window.CSRF_TOKEN || ""}
+      });
+      if (r.ok){
+        onlyUnreadSwitch.checked = false;
+        onlyUnread = false;
+        fetchPage(true).catch(console.error);
+      }
+    });
+
+    // boot
+    fetchUnreadCount().catch(()=>{});
+    fetchPage(true).catch(console.error);
+  };
+})();
+</script>

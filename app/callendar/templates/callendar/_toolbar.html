@@ -1,0 +1,62 @@
+<!-- app/callendar/templates/callendar/_toolbar.html -->
+<div class="row g-2 align-items-center" id="CalToolbar">
+  <div class="col-auto">
+    <button class="btn btn-primary js-open-create">
+      <i class="bi bi-plus-lg"></i> Нов настан
+    </button>
+  </div>
+
+  <div class="col-auto">
+    <div class="btn-group" role="group" aria-label="Промени поглед">
+      <button class="btn btn-outline-secondary js-switch-view" data-view="day">Ден</button>
+      <button class="btn btn-outline-secondary js-switch-view" data-view="week">Недела</button>
+      <button class="btn btn-outline-secondary js-switch-view" data-view="month">Месец</button>
+    </div>
+  </div>
+
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary js-prev" aria-label="Претходно">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <button class="btn btn-outline-secondary js-today">Денес</button>
+    <button class="btn btn-outline-secondary js-next" aria-label="Следно">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- 🗑️ Drag-to-delete dropzone (events only) -->
+  <div class="col-auto">
+    <div id="CalTrash"
+         class="cal-trash"
+         role="button"
+         aria-label="Повлечи настан овде за бришење"
+         title="Повлечи настан овде за бришење">
+      <i class="bi bi-trash3"></i>
+    </div>
+  </div>
+
+  <div class="col d-flex justify-content-end align-items-center gap-2">
+    <!-- Your combined search + filter control (left as-is) -->
+    <div class="input-group" style="max-width: 420px;">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="search" class="form-control js-filter-q" placeholder="Пребарај настани/тикети…">
+      <button class="btn btn-outline-secondary js-open-filters" type="button">
+        <i class="bi bi-sliders"></i>
+      </button>
+    </div>
+
+    <!-- Add inside your toolbar controls -->
+<button type="button" class="btn btn-outline-primary js-open-invitations">
+  <i class="bi bi-envelope-open"></i>
+  Покани
+  <span id="InvitesBadge" class="badge rounded-pill bg-danger ms-1 d-none">0</span>
+</button>
+
+<a href="/notifications" class="btn btn-outline-secondary">
+  <i class="bi bi-bell"></i>
+  Нотификации
+  <span id="NotifBadge" class="badge rounded-pill bg-danger ms-1 d-none">0</span>
+</a>
+
+  </div>
+</div>

@@ -1,0 +1,69 @@
+User Create > add fields > EMBG 
+Users > expand > General > show the EMBG 
+Users > under Actions add Edit button, only General tab can be edited
+
+Users > Agreements > when Clicked Create agreement make collapsible menu where user can select starting date and next to that date to have a field where user will enter number only allowed that number will represent months. it need to sum those dates. starting date + field. when clicked save. 
+ to create a section active/history of contracts. active - contracts ends at <date>. and optional to attach pdf/word file. to active agreement to have an option to extend the agreement by X amount of months so there should be a button when clicked appears a box to type a number and automatically calculates end of the contract. show that info. and also to have a button cancel the contract/ do not extend and that contract automatically goes to history contracts.
+
+--------------------------------------------------------------
+
+Users > Create > add field > Vacation Days
+Users > expand > General show the Vacation Days
+
+Users > expand > Vacation > make a button New Vacation when clicked make collapsible menu it need to show Read only Vacation Days from general tab. and have a field next to vacation days where the user will enter a number of days the worker wants to use. number only allowed. and it needs to substract from Vacation Days - days the worker wants to use it. and need to show how many days he took, starting date + entered days needs to sum the dates automatically to tell which day the worker is returning back to work. need active and history section. when the worker vacation ends it must automatically go to history. very important note. Saturday and sunday should not be counted in the vacation days. when a worker take vacation days are counted from Monday to Friday. skip Saturday and sunday. and non working days like holidays. needs to have an button called holidays as well collapsible if there is a holiday near user needs to click the button to collapse and select date from calendar that will be excluded from days the user is on vacation. if there is multiple holidays there must be an option to exclude multiple dates from user vacation days.
+
+Users > expand > General > Read only field from tab Vacation > Vacation days left
+
+better showcase on the information in General tab
+
+--------------------------------------------------------------
+
+Users > expand > Sick Leave > need to make a collapsible button +Sick Leave, select start and end date and to have a drop down menu with the following options : Терет на фирма, Терет на фонд, Породилно, 100% повреда на работа
+optional attach file word/pdf/excel, and text box as a comments
+need active and history section. 
+after end date expire automatically needs to go to history
+to show a counter how many business days it was on a sick leave and another collapsible button which will be called holidays those selected days will be excluded from the sick leave days counter.
+
+Users > expand > need new tab switch button called Извештај
+Users > expand > Извештај > make a collapsible butto called Санитарен преглед Need to enter a date of the last Санитарен преглед, they need to make one Санитарен преглед every 6 months so put a countdown how much time left until their Санитарен преглед Months and days only
+make a second collapsible button called Систематски преглед, they need to make one Систематски преглед every 24 months so put a countdown how much time left until their Систематски преглед months and days only.
+
+Users > expand > need new tab switch button called Униформи
+Users > expand > Униформи > make a collapsible button with text field what kind of Униформа was assigned to the worker and a date. make a field where they place number only allowed how many months it takes until they renew their Униформа, and based on that number add a countdown.
+
+Users > expand > need new tab switch button called Обука
+Users > expand > Обука > text field +add collapsible button to write down what kind of Обука the worker went thru during work period. make edit/delete buttons. place a callender start of the Обука and end of the Обука
+make a section active and history. 
+
+Users > expand > need new tab switch button called Казни и Награди
+Users > expand > Казни и Награди > need a collapsible +add button there will be text field and calendar to choose date.
+and ofc the list must be shown of what was recorded to save. 
+
+give me full fixed version
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

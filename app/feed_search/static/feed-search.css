@@ -1,0 +1,12 @@
+.fs-wrap{max-width:960px;margin:0 auto;padding:8px;display:grid;gap:12px}
+.fs-bar{display:flex;gap:8px}
+.fs-input{flex:1;border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px}
+.fs-btn{border:1px solid #c7d2fe;border-radius:12px;padding:10px 12px;background:#eef2ff;font-weight:700;cursor:pointer}
+.fs-list{display:grid;gap:10px}
+.fs-item{background:rgba(255,255,255,.82);border:1px solid #e5e7eb;border-radius:14px;padding:12px;box-shadow:0 8px 18px rgba(0,0,0,.05)}
+.fs-hdr{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.fs-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#eef2ff}
+.fs-title{font-weight:800}
+.fs-snippet{color:#374151}
+.fs-meta{color:#6b7280;font-size:.9rem}
+.fs-more{display:block;margin:8px auto 0}

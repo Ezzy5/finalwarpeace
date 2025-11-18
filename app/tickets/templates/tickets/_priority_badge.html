@@ -1,0 +1,11 @@
+{# app/tickets/templates/tickets/_priority_badge.html #}
+{% set pr = t.priority.value %}
+<span class="badge text-bg-{% if pr=='Urgent' %}danger{% elif pr=='High' %}warning{% elif pr=='Medium' %}info{% else %}secondary{% endif %}">
+  {% if pr=='Urgent' %}🔥{% elif pr=='High' %}⚠️{% elif pr=='Medium' %}🟡{% else %}🟢{% endif %} {{ pr }}
+</span>
+
+{# app/tickets/templates/tickets/_status_badge.html #}
+{% set st = t.status.value %}
+<span class="badge text-bg-{% if st=='Open' %}primary{% elif st=='In Progress' %}warning{% elif st=='Resolved' %}success{% else %}secondary{% endif %}">
+  {% if st=='Open' %}🟦{% elif st=='In Progress' %}⏳{% elif st=='Resolved' %}✅{% else %}🔒{% endif %} {{ st }}
+</span>

@@ -1,0 +1,54 @@
+<div id="NotificationView" class="container py-4" data-init="mountNotificationsPanel">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <a class="btn btn-sm btn-outline-secondary" data-url="/notifications" data-init="mountNotificationsPanel" href="/notifications">
+        ← Назад
+      </a>
+      <h2 class="m-0">Нотификација</h2>
+    </div>
+    <div class="d-flex gap-2">
+      {% if not n.is_read %}
+      <form onsubmit="return false;">
+        <button class="btn btn-outline-success" id="btnMarkRead" data-id="{{ n.id }}" type="button">
+          <i class="bi bi-check2"></i> Обележи како прочитано
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <h4 class="mb-0">{{ n.title }}</h4>
+        <span class="badge {{ 'text-bg-secondary' if n.is_read else 'text-bg-warning' }}">
+          {{ 'Прочитано' if n.is_read else 'Ново' }}
+        </span>
+      </div>
+
+      {% set nice = n.body or n.context_text %}
+      {% if nice %}
+        <p class="mb-3 text-muted">{{ nice }}</p>
+      {% endif %}
+
+      <div class="text-muted small">Креирана: {{ n.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+    </div>
+  </div>
+</div>
+
+<script data-exec>
+(function () {
+  document.addEventListener("click", async function (e) {
+    const btnRead = e.target.closest("#btnMarkRead");
+    if (!btnRead) return;
+    e.preventDefault();
+
+    const id = btnRead.getAttribute("data-id");
+    const r = await fetch("/notifications/api/notifications/" + id + "/read", {
+      method:"POST", credentials:"same-origin",
+      headers: {"X-CSRFToken": window.CSRF_TOKEN || ""}
+    });
+    if (r.ok) location.href = "/notifications";
+  });
+})();
+</script>

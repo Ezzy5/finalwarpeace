@@ -1,0 +1,9 @@
+/* highlight drop targets */
+.is-drop-target {
+  outline: 2px dashed #4096ff;
+  outline-offset: 3px;
+  background: rgba(64,150,255,0.06);
+}
+.is-dragging {
+  opacity: .6;
+}

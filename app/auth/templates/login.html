@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login</title>
+
+  <style>
+    :root{
+      --brand: #5b7cfa;           /* main accent */
+      --brand-2: #7b5bfa;         /* secondary accent */
+      --bg-1: #0e0f13;            /* base background (dark) */
+      --bg-2: #141620;
+      --txt: #e9ecf1;             /* primary text */
+      --muted: #9aa3b2;           /* muted text */
+      --card: rgba(255,255,255,0.08);
+      --stroke: rgba(255,255,255,0.18);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+
+      /* spacing & radius */
+      --r: 18px;
+      --pad: 16px;
+      --g: 18px;
+
+      /* form */
+      --input-bg: rgba(255,255,255,0.08);
+      --input-txt: #e9ecf1;
+      --input-ph: #aeb6c7;
+      --focus: #a6b4ff;
+      --error: #ff6b6b;
+      --success:#46d19a;
+    }
+
+    /* Optional light theme */
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg-1: #f3f5fb;
+        --bg-2: #eef1f9;
+        --txt: #121418;
+        --muted: #586074;
+        --card: rgba(255,255,255,0.75);
+        --stroke: rgba(17,24,39,0.08);
+        --shadow: 0 8px 26px rgba(17,24,39,0.08);
+        --input-bg: rgba(17,24,39,0.04);
+        --input-txt: #121418;
+        --input-ph: #7b849a;
+      }
+    }
+
+    /* Reset & base */
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0;
+      color:var(--txt);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% 10%, rgba(123,91,250,0.25), transparent 60%),
+                  radial-gradient(1000px 700px at 90% 20%, rgba(91,124,250,0.30), transparent 55%),
+                  linear-gradient(120deg, var(--bg-1), var(--bg-2));
+      overflow: hidden;
+    }
+
+    /* Subtle animated background sheen */
+    .bg-anim::before{
+      content:"";
+      position: fixed;
+      inset: -25%;
+      background:
+        radial-gradient(600px 600px at var(--x,30%) var(--y,20%), rgba(255,255,255,0.08), transparent 60%);
+      pointer-events: none;
+      transition: 0.15s ease-out;
+      z-index: 0;
+    }
+
+    .wrap{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: clamp(20px, 6vw, 60px);
+      align-items: center;
+      height:100dvh;
+      padding: clamp(20px, 4vw, 40px);
+    }
+
+    @media (max-width: 980px){
+      .wrap{ grid-template-columns: 1fr; padding: 24px; }
+      .art{ display:none; }
+    }
+
+    /* Left: art / brand */
+    .art{
+      height: min(72vh, 720px);
+      border-radius: calc(var(--r) + 6px);
+      background:
+        linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
+        url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow:hidden;
+      animation: slideInLeft .8s cubic-bezier(.2,.65,.25,1);
+      outline: 1px solid var(--stroke);
+    }
+    .art::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.35));
+    }
+    .badge{
+      position:absolute; top:18px; left:18px;
+      z-index:2;
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.10);
+      border: 1px solid var(--stroke);
+      color: #fff;
+      font-weight: 600;
+      padding: 10px 14px;
+      border-radius: 999px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .badge .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: linear-gradient(180deg, var(--brand), var(--brand-2));
+      box-shadow: 0 0 12px rgba(91,124,250,.7);
+    }
+    .caption{
+      position:absolute; left:24px; bottom:24px; right:24px; z-index:2;
+      color:#fff;
+      text-shadow: 0 2px 16px rgba(0,0,0,.35);
+    }
+    .caption h2{
+      margin:0 0 6px 0; font-size: clamp(20px, 3.2vw, 34px);
+      letter-spacing:.2px;
+    }
+    .caption p{ margin:0; opacity:.9 }
+
+    /* Right: form card */
+    .card{
+      width: 100%;
+      max-width: 430px;
+      margin-inline: auto;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      border-radius: calc(var(--r) + 2px);
+      backdrop-filter: blur(12px);
+      padding: clamp(18px, 3.2vw, 28px);
+      animation: slideInRight .8s cubic-bezier(.2,.65,.25,1);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; margin-bottom: 10px;
+    }
+    .logo{
+      width:40px; height:40px; border-radius:12px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      box-shadow: 0 8px 22px rgba(91,124,250,.45);
+    }
+    .brand h1{
+      font-size: 22px; margin:0; letter-spacing:.2px;
+    }
+    .subtitle{ color: var(--muted); margin: 6px 0 18px 0; font-size: 14px }
+
+    form{ display:grid; gap: var(--g) }
+    .field{ display:grid; gap:8px }
+    .label-row{
+      display:flex; align-items:center; justify-content:space-between;
+      font-size: 13px; color: var(--muted);
+    }
+    .input{
+      display:flex; align-items:center; gap:10px;
+      background: var(--input-bg);
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: 12px 14px;
+      transition: border .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .input:focus-within{
+      border-color: var(--focus);
+      box-shadow: 0 0 0 4px rgba(166,180,255,.18);
+      background: rgba(255,255,255,0.12);
+    }
+    .input svg{ flex: 0 0 18px; opacity:.9 }
+    .input input{
+      flex:1; border:0; outline:0; background: transparent;
+      color: var(--input-txt);
+      font-size: 15px; letter-spacing:.2px;
+    }
+    .input input::placeholder{ color: var(--input-ph) }
+
+    .toggle-psw{
+      appearance:none; background:none; border:0; padding:6px;
+      cursor:pointer; border-radius:8px;
+    }
+    .toggle-psw:hover{ background: rgba(255,255,255,.08) }
+
+    .actions{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-top: 4px;
+    }
+    .remember { display:flex; align-items:center; gap:8px; font-size: 13px; color: var(--muted) }
+    .remember input{ width:16px; height:16px }
+
+    .btn{
+      appearance:none; border:0; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center;
+      padding: 12px 16px;
+      width: 100%;
+      border-radius: 14px;
+      font-weight: 700; letter-spacing:.3px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: white;
+      box-shadow: 0 10px 26px rgba(91,124,250,.35), inset 0 -8px 16px rgba(0,0,0,.12);
+      transition: transform .08s ease, filter .15s ease, box-shadow .2s ease;
+    }
+    .btn:hover{ filter: brightness(1.04) }
+    .btn:active{ transform: translateY(1px) }
+
+    .alert{
+      background: rgba(255,107,107,.12);
+      color: #ffe0e0;
+      border: 1px solid rgba(255,107,107,.35);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    /* Keyframes */
+    @keyframes slideInRight{
+      from{ opacity:0; transform: translateX(30px) scale(.98) }
+      to  { opacity:1; transform: translateX(0)      }
+    }
+    @keyframes slideInLeft{
+      from{ opacity:0; transform: translateX(-30px) scale(.98) }
+      to  { opacity:1; transform: translateX(0)      }
+    }
+
+    /* Accessibility focus ring for clickable things */
+    .toggle-psw:focus-visible, .btn:focus-visible, a:focus-visible{
+      outline: 3px solid rgba(166,180,255,.5);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body class="bg-anim">
+  <div class="wrap" id="screen">
+    <!-- Brand / Artwork side -->
+    <aside class="art" aria-hidden="true">
+      <div class="badge" title="Secure area">
+        <span class="dot" aria-hidden="true"></span>
+        <span>Secure Login</span>
+      </div>
+      <div class="caption">
+        <h2>Welcome back</h2>
+        <p>Sign in to access your dashboard and keep the workflow moving.</p>
+      </div>
+    </aside>
+
+    <!-- Login Card -->
+    <main class="card" role="main" aria-labelledby="title">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <h1 id="title">Sign in</h1>
+      </div>
+      <p class="subtitle">Use your work email and password to continue.</p>
+
+      {# Flashed errors #}
+      {% with msgs = get_flashed_messages(category_filter=['error']) %}
+        {% if msgs %}
+          <div class="alert" role="alert" aria-live="polite">
+            {% for m in msgs %}{{ m }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="post" action="" novalidate>
+        <!-- CSRF -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Email -->
+        <div class="field">
+          <div class="label-row">
+            <label for="email">Email</label>
+            <small></small>
+          </div>
+          <div class="input">
+            <!-- mail icon -->
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path fill="currentColor" d="M20 4H4a2 2 0 0 0-2 2v1.2l10 6.25L22 7.2V6a2 2 0 0 0-2-2zm0 4.1l-8 5-8-5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.1z"/>
+            </svg>
+            <input type="email" id="email" name="email"
+                   inputmode="email" autocomplete="email"
+                   placeholder="you@company.com"
+                   value="{{ email|default('') }}" required />
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field">
+          <div class="label-row">
+            <label for="password">Password</label>
+          </div>
+          <div class="input">
+            <!-- lock icon -->
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path fill="currentColor" d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5Zm3 8H9V6a3 3 0 0 1 6 0v3Z"/>
+            </svg>
+            <input type="password" id="password" name="password" autocomplete="current-password"
+                   placeholder="••••••••" required />
+            <button class="toggle-psw" type="button" aria-label="Show password" title="Show/Hide password">
+              <svg id="eye" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path fill="currentColor" d="M12 5c5 0 9.27 3.11 11 7-1.73 3.89-6 7-11 7S2.73 15.89 1 12c1.73-3.89 6-7 11-7Zm0 2C8.2 7 4.93 9.06 3.35 12 4.93 14.94 8.2 17 12 17s7.07-2.06 8.65-5C19.07 9.06 15.8 7 12 7Zm0 2.5A2.5 2.5 0 1 1 9.5 12 2.5 2.5 0 0 1 12 9.5Z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="actions">
+          <label class="remember">
+            <input type="checkbox" name="remember" value="1" />
+            <span>Remember me</span>
+          </label>
+        </div>
+
+        <button class="btn" type="submit">Log In</button>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    // animated background tracking pointer for subtle sheen
+    const root = document.documentElement;
+    const track = (e) => {
+      const { innerWidth:w, innerHeight:h } = window;
+      const x = Math.max(0, Math.min(100, (e.clientX / w) * 100));
+      const y = Math.max(0, Math.min(100, (e.clientY / h) * 100));
+      root.style.setProperty('--x', x + '%');
+      root.style.setProperty('--y', y + '%');
+    };
+    window.addEventListener('pointermove', track, { passive:true });
+
+    // show/hide password
+    const psw = document.getElementById('password');
+    const btn = document.querySelector('.toggle-psw');
+    const eye = document.getElementById('eye');
+    btn?.addEventListener('click', () => {
+      const showing = psw.type === 'text';
+      psw.type = showing ? 'password' : 'text';
+      btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+      // swap eye icon path quickly
+      eye.innerHTML = showing
+        ? '<path fill="currentColor" d="M12 5c5 0 9.27 3.11 11 7-1.73 3.89-6 7-11 7S2.73 15.89 1 12c1.73-3.89 6-7 11-7Zm0 2C8.2 7 4.93 9.06 3.35 12 4.93 14.94 8.2 17 12 17s7.07-2.06 8.65-5C19.07 9.06 15.8 7 12 7Zm0 2.5A2.5 2.5 0 1 1 9.5 12 2.5 2.5 0 0 1 12 9.5Z"/>'
+        : '<path fill="currentColor" d="M2.3 1.6 1 2.9l4 4C3 8 1.7 9.8 1 12c1.73 3.89 6 7 11 7 2.2 0 4.25-.6 6.02-1.64l3.68 3.68 1.3-1.3L2.3 1.6zM7.4 9.3l1.6 1.6a3 3 0 0 0 4.1 4.1l1.5 1.5A6.7 6.7 0 0 1 12 17c-3.8 0-7.07-2.06-8.65-5 .58-1.06 1.46-2 2.52-2.8l1.53 1.53zm4.2-5.6c5 0 9.27 3.11 11 7-.52 1.16-1.3 2.23-2.28 3.16l-2.03-2.03C19.07 9.06 15.8 7 12 7c-.37 0 -.74 .02 -1.1 .06l-1.7-1.7c.88-.39 1.85-.66 2.8-.66z"/>';
+    });
+
+    // minimal client-side validation styling
+    document.querySelector('form')?.addEventListener('submit', (e)=>{
+      const email = document.getElementById('email');
+      const pwd = document.getElementById('password');
+      if(!email.checkValidity() || !pwd.value){
+        e.preventDefault();
+        // quick visual shake on invalid
+        const card = document.querySelector('.card');
+        card.animate(
+          [{ transform:'translateX(0)' }, { transform:'translateX(-6px)' }, { transform:'translateX(6px)' }, { transform:'translateX(0)' }],
+          { duration: 250, iterations: 1, easing: 'ease-in-out' }
+        );
+      }
+    });
+  </script>
+</body>
+</html>

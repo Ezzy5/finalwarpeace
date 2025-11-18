@@ -1,0 +1,121 @@
+<!-- app/callendar/templates/callendar/_event_modal.html -->
+<div class="modal fade" id="EventModal" tabindex="-1" aria-labelledby="EventModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 id="EventModalLabel" class="modal-title">Create / Edit Event</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="EventForm" class="modal-body" enctype="multipart/form-data">
+        {{ event_form.csrf_token }}
+
+        <div class="mb-3">
+          <label for="EventTitle" class="form-label">Event name</label>
+          <input id="EventTitle" name="title" type="text" class="form-control" placeholder="Team sync…" required>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="EventStart" class="form-label">Start (YYYY-MM-DD HH:MM)</label>
+            <input id="EventStart" name="start_dt" type="text" class="form-control" placeholder="2025-10-13 09:00" required>
+          </div>
+          <div class="col-md-6">
+            <label for="EventEnd" class="form-label">End (YYYY-MM-DD HH:MM)</label>
+            <input id="EventEnd" name="end_dt" type="text" class="form-control" placeholder="2025-10-13 10:00" required>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <a class="text-decoration-none" data-bs-toggle="collapse" href="#TimeZoneCollapse" role="button" aria-expanded="false" aria-controls="TimeZoneCollapse">
+            <i class="bi bi-globe2"></i> Time zone (optional)
+          </a>
+          <div class="collapse mt-2" id="TimeZoneCollapse">
+            <input id="EventTimezone" name="timezone" type="text" class="form-control" placeholder="Europe/Skopje">
+          </div>
+        </div>
+
+        <div class="row g-3 mt-3">
+          <div class="col-md-4">
+            <label for="EventRepeat" class="form-label">Repeat</label>
+            <select id="EventRepeat" name="repeat" class="form-select">
+              <option value="NONE" selected>Don’t repeat</option>
+              <option value="DAILY">Daily</option>
+              <option value="WEEKLY">Weekly</option>
+              <option value="MONTHLY">Monthly</option>
+              <option value="YEARLY">Yearly</option>
+            </select>
+          </div>
+
+          <div class="col-md-8">
+            <label for="EventAttendees" class="form-label">Attendees</label>
+            <!-- NOTE the data-users-endpoint attribute -->
+            <select
+              id="EventAttendees"
+              name="attendees"
+              class="form-select"
+              multiple
+              style="width:100%"
+              data-users-endpoint="{{ url_for('callendar.api_users_options') }}"
+            ></select>
+            <div class="form-text">Choose one or more users.</div>
+          </div>
+        </div>
+
+        <div class="form-check mt-3">
+          <input class="form-check-input" id="notify_resp" type="checkbox" name="notify_on_responses" value="1">
+          <label class="form-check-label" for="notify_resp">Notify when attendees confirm or decline</label>
+        </div>
+
+        <div class="mt-3">
+          <a class="text-decoration-none" data-bs-toggle="collapse" href="#MoreCollapse" role="button" aria-expanded="false" aria-controls="MoreCollapse">
+            <i class="bi bi-three-dots"></i> More
+          </a>
+          <div class="collapse mt-2" id="MoreCollapse">
+            <div class="mb-3">
+              <label for="EventDescription" class="form-label">Description</label>
+              <textarea id="EventDescription" name="description" class="form-control" rows="4" placeholder="Details…"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="EventAttachment" class="form-label">Attachment</label>
+              <input id="EventAttachment" name="attachment" type="file" class="form-control">
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="EventReminderPreset" class="form-label">Reminder (preset)</label>
+                <select id="EventReminderPreset" name="reminder_predefined" class="form-select">
+                  <option value="">None</option>
+                  <option value="5">5 minutes before</option>
+                  <option value="10">10 minutes before</option>
+                  <option value="15">15 minutes before</option>
+                  <option value="30">30 minutes before</option>
+                  <option value="60">1 hour before</option>
+                  <option value="120">2 hours before</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="EventReminderCustom" class="form-label">Custom minutes before</label>
+                <input id="EventReminderCustom" name="reminder_custom" type="number" min="0" class="form-control" placeholder="e.g. 25">
+                <div class="form-text">If set, overrides the preset.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" name="id" id="EventId" value="">
+      </form>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-danger d-none me-auto js-delete-event" type="button">
+          <i class="bi bi-trash"></i> Delete
+        </button>
+        <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary js-save-event" type="button">
+          <i class="bi bi-check2"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

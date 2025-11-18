@@ -1,0 +1,38 @@
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span class="fw-semibold"><i class="bi bi-envelope-open"></i> Invitations</span>
+    <button class="btn btn-sm btn-outline-secondary js-close-invitations">Close</button>
+  </div>
+  <div class="list-group list-group-flush">
+    {% if invitations %}
+      {% for inv in invitations %}
+        {% set ev = inv.event %}
+        <div class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+          <div>
+            <div class="fw-semibold">{{ ev.title }}</div>
+            <div class="text-muted small">
+              {{ (ev.start_dt|tz('Europe/Skopje')).strftime("%Y-%m-%d %H:%M") }}
+			  →
+			  {{ (ev.end_dt|tz('Europe/Skopje')).strftime("%Y-%m-%d %H:%M") }}
+
+              &middot; Organiser: {{ ev.organiser.username if ev.organiser else ev.organiser_id }}
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-sm btn-outline-success js-invite-respond" data-event-id="{{ ev.id }}" data-status="ACCEPTED">
+              <i class="bi bi-check2-circle"></i> Accept
+            </button>
+            <button class="btn btn-sm btn-outline-secondary js-invite-respond" data-event-id="{{ ev.id }}" data-status="TENTATIVE">
+              <i class="bi bi-question-circle"></i> Tentative
+            </button>
+            <button class="btn btn-sm btn-outline-danger js-invite-respond" data-event-id="{{ ev.id }}" data-status="DECLINED">
+              <i class="bi bi-x-circle"></i> Decline
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="list-group-item text-muted">No invitations for now.</div>
+    {% endif %}
+  </div>
+</div>

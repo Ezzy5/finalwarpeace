@@ -1,0 +1,157 @@
+<!-- app/callendar/templates/callendar/panel.html -->
+<div id="CalendarPanel" data-init="mountCallendarPanel">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h5 m-0"><i class="bi bi-calendar3 me-1"></i> Календар</h2>
+    <div class="text-muted small">Поглед: <span id="RangeLabel">—</span></div>
+  </div>
+
+  <div class="container-fluid p-0" id="CalendarRoot"
+       data-selected-view="{{ selected_view }}"
+       data-now="{{ now.isoformat() }}">
+
+    {% include "callendar/_toolbar.html" %}
+
+    <div id="CalendarViews" class="mt-3">
+      <div id="DayView" class="calendar-view d-none">
+        {% include "callendar/_day_view.html" %}
+      </div>
+      <div id="WeekView" class="calendar-view d-none">
+        {% include "callendar/_week_view.html" %}
+      </div>
+      <div id="MonthView" class="calendar-view d-none">
+        {% include "callendar/_month_view.html" %}
+      </div>
+    </div>
+
+    <div id="InvitationsPanel" class="mt-4 d-none"></div>
+
+    {% include "callendar/_filters_modal.html" %}
+    {% include "callendar/_ticket_modal.html" %}
+    {% include "callendar/_day_list_modal.html" %}
+  </div>
+
+  <!-- Panel-scoped styles -->
+  <link rel="stylesheet" href="{{ url_for('callendar.static', filename='css/calendar.css') }}">
+
+  <!-- NOTE:
+       If you use Select2 in EventModal, load jQuery + Select2 ONCE globally in your base layout.
+       Do not duplicate them here to avoid “Select2 not present” or duplicate-library issues.
+  -->
+
+  <!-- Calendar assets (marked data-exec so your SPA executor may run them). -->
+  <script src="{{ url_for('callendar.static', filename='js/api.js') }}" data-exec></script>
+  <script src="{{ url_for('callendar.static', filename='js/views/miniCalendar.js') }}" data-exec></script>
+  <script src="{{ url_for('callendar.static', filename='js/views/dayView.js') }}" data-exec></script>
+  <script src="{{ url_for('callendar.static', filename='js/views/weekView.js') }}" data-exec></script>
+  <script src="{{ url_for('callendar.static', filename='js/views/monthView.js') }}" data-exec></script>
+  <script src="{{ url_for('callendar.static', filename='js/views/filters.js') }}" data-exec></script>
+  <script src="{{ url_for('callendar.static', filename='js/views/eventModal.js') }}" data-exec></script>
+  <!-- Preload & include the stylish Event Details modal BEFORE calendar.js -->
+  <script src="{{ url_for('callendar.static', filename='js/views/eventDetails.js') }}" data-exec></script>
+
+
+  <script src="{{ url_for('callendar.static', filename='js/calendar.js') }}" data-exec></script>
+  <script src="{{ url_for('callendar.static', filename='js/views/invitations.js') }}" data-exec></script>
+
+  <!-- Pass selected view on mount -->
+  <script data-exec>
+    window.__CAL_SELECTED_VIEW__ = "{{ selected_view }}";
+  </script>
+
+  <!-- Robust bootstrap: if your SPA doesn't execute inline scripts,
+       this loader will still fetch in order and call CalendarApp.init() -->
+  <script data-exec>
+    (function(){
+      function abs(u){ var a=document.createElement('a'); a.href=u; return a.href; }
+      function ensureScript(src, next){
+        var url = abs(src);
+        var already = Array.prototype.slice.call(document.querySelectorAll('script[src]'))
+          .some(function(s){ return abs(s.src) === url; });
+        if (already) { next && next(); return; }
+        var queued = document.querySelector('script[data-cal-src="'+url+'"]');
+        if (queued){ queued.addEventListener('load', function(){ next && next(); }); return; }
+        var s = document.createElement('script');
+        s.src = url;
+        s.async = false; /* keep order */
+        s.setAttribute('data-cal-src', url);
+        s.onload = function(){ next && next(); };
+        s.onerror = function(){ console.error('Calendar script failed:', url); next && next(); };
+        document.head.appendChild(s);
+      }
+
+      var ASSETS = [
+        "{{ url_for('callendar.static', filename='js/api.js') }}",
+        "{{ url_for('callendar.static', filename='js/views/miniCalendar.js') }}",
+        "{{ url_for('callendar.static', filename='js/views/dayView.js') }}",
+        "{{ url_for('callendar.static', filename='js/views/weekView.js') }}",
+        "{{ url_for('callendar.static', filename='js/views/monthView.js') }}",
+        "{{ url_for('callendar.static', filename='js/views/filters.js') }}",
+        "{{ url_for('callendar.static', filename='js/views/eventModal.js') }}",
+        "{{ url_for('callendar.static', filename='js/views/eventDetails.js') }}",
+        "{{ url_for('callendar.static', filename='js/calendar.js') }}",
+        "{{ url_for('callendar.static', filename='js/views/invitations.js') }}"
+      ];
+
+      function loadAssets(i, done){
+        if (i >= ASSETS.length) { done && done(); return; }
+        ensureScript(ASSETS[i], function(){ loadAssets(i+1, done); });
+      }
+
+      if (typeof window.mountCallendarPanel !== 'function') {
+        window.mountCallendarPanel = function(){
+          loadAssets(0, function(){
+            var tries = 0;
+            (function boot(){
+              if (window.CalendarApp && typeof window.CalendarApp.init === 'function') {
+                window.CalendarApp.init();
+                return;
+              }
+              if (tries++ < 80) { setTimeout(boot, 25); return; }
+              console.error('Callendar: CalendarApp.init() not available after load.');
+            })();
+          });
+        };
+      }
+
+      // Auto-mount immediately (full load) and on SPA injections
+      function tryMount(){
+        var host = document.querySelector('#CalendarPanel[data-init="mountCallendarPanel"]');
+        if (!host) return;
+        if (host.__calMounted) return;
+        host.__calMounted = true;
+        try { window.mountCallendarPanel(); } catch(e){ console.error(e); }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryMount);
+      } else {
+        tryMount();
+      }
+
+      // Observe DOM for SPA insertions
+      var mo = new MutationObserver(function (mutations) {
+        for (var m of mutations) {
+          if (m.type !== 'childList') continue;
+          for (var n of m.addedNodes) {
+            if (!(n instanceof HTMLElement)) continue;
+            if (n.id === 'CalendarPanel' && n.getAttribute('data-init') === 'mountCallendarPanel') {
+              tryMount(); return;
+            }
+            if (n.querySelector && n.querySelector('#CalendarPanel[data-init="mountCallendarPanel"]')) {
+              tryMount(); return;
+            }
+          }
+        }
+      });
+      mo.observe(document.documentElement || document.body, { childList: true, subtree: true });
+
+      // Hooks for common SPA libs
+      window.addEventListener('popstate', tryMount);
+      document.addEventListener('pjax:end', tryMount);
+      document.addEventListener('htmx:afterSwap', tryMount);
+      document.addEventListener('turbo:load', tryMount);
+      document.addEventListener('turbolinks:load', tryMount);
+      document.addEventListener('app:navigation:done', tryMount); // custom hook if you dispatch it
+    })();
+  </script>
+</div>

@@ -1,0 +1,274 @@
+{% block content %}
+
+<div class="container py-4">
+  <div class="d-flex align-items-center mb-3">
+    <h2 class="mb-0">Create Ticket</h2>
+  </div>
+
+  <form method="POST"
+        action="{{ url_for('tickets.create') }}"
+        enctype="multipart/form-data"
+        id="ticket-form">
+    {{ form.hidden_tag() }}
+
+    <!-- Title -->
+    <div class="mb-3">
+      <label class="form-label">Title</label>
+      {{ form.title(class="form-control", placeholder="Short summary") }}
+      {% for e in form.title.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+    </div>
+
+    <!-- Description -->
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      {{ form.description(class="form-control", rows="6", placeholder="Describe the issue or request...") }}
+      {% for e in form.description.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="row g-3">
+      <!-- Priority -->
+      <div class="col-md-4">
+        <label class="form-label">Priority</label>
+        {% if form.priority %}{{ form.priority(class="form-select") }}{% else %}
+          <input type="text" class="form-control" name="priority" placeholder="Priority (Low / Medium / High / Urgent)">
+        {% endif %}
+        {% for e in form.priority.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+
+      <!-- Due date -->
+      <div class="col-md-4">
+        <label class="form-label">Due date (optional)</label>
+        {% if form.due_date %}{{ form.due_date(class="form-control", type="date") }}{% else %}
+          <input type="date" class="form-control" name="due_date">
+        {% endif %}
+        {% for e in form.due_date.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+
+      <!-- Hidden status if present; server defaults to IN_PROGRESS -->
+      {% if form.status is defined %}
+        {{ form.status(type="hidden") }}
+      {% endif %}
+    </div>
+
+    <div class="row g-3 mt-1">
+      <!-- Assignees (Select2 multi) -->
+      <div class="col-md-6">
+        <label class="form-label">Assign users</label>
+        <select name="assignees" id="assignees"
+                class="form-select js-select2" multiple
+                data-placeholder="Select assignees">
+          {% set selected_assignees = (selected_assignee_ids or []) | map('int') | list %}
+          {% for u in users %}
+            {% set label = (u.first_name ~ ' ' ~ u.last_name).strip() if (u.first_name or u.last_name) else (u.username or u.email or ('User #' ~ u.id)) %}
+            <option value="{{ u.id }}" {% if u.id in selected_assignees %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Choose one or more assignees; the ticket is shared.</div>
+      </div>
+
+      <!-- Departments (Select2 multi) -->
+      <div class="col-md-6">
+        <label class="form-label">Departments (optional)</label>
+        <select name="departments" id="departments"
+                class="form-select js-select2" multiple
+                data-placeholder="Select departments">
+          {% set selected_depts = (selected_dept_ids or []) | map('int') | list %}
+          {% for d in departments %}
+            {% set dlabel = d.name or d.title or ('Dept #' ~ d.id) %}
+            <option value="{{ d.id }}" {% if d.id in selected_depts %}selected{% endif %}>{{ dlabel }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="mt-3">
+      <label class="form-label">Attachments (optional)</label>
+      <input class="form-control" type="file" name="attachments" id="attachments" multiple>
+      <div class="form-text">You can select one or more files.</div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="mt-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <h5 class="mb-0">Checklist (optional)</h5>
+        <button type="button" class="btn btn-outline-primary btn-sm"
+                data-bs-toggle="collapse" data-bs-target="#checklistWrap">
+          Toggle Checklist
+        </button>
+      </div>
+
+      <div id="checklistWrap" class="collapse mt-3">
+        <div id="checklists" class="d-grid gap-3"></div>
+
+        <div class="mt-3">
+          <button type="button" class="btn btn-secondary" id="addChecklistBtn">
+            <i class="bi bi-plus-lg"></i> Add checklist
+          </button>
+        </div>
+      </div>
+
+      <!-- Hidden JSON (we'll store GROUPED payload:
+           [{ title:"Section", items:[{text:"...", done:false}, ...] }, ...] ) -->
+      <input type="hidden" id="checklists_json" name="checklists_json" value="[]">
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+      <a href="{{ url_for('tickets.panel') }}" class="btn btn-light">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+  </form>
+</div>
+
+<!-- ====== Vendor CSS (Select2) ====== -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+
+<!-- Optional icons (Bootstrap Icons) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<!-- ====== Vendor JS: jQuery -> Select2 -> (then our scripts) ====== -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+  // Utility to make a safe ID
+  function uid() { return Math.random().toString(36).slice(2, 9); }
+
+  // Checklist rendering helpers (supports multiple "lists" in UI)
+  function renderChecklist(list) {
+    const listId = list.id || uid();
+    const card = document.createElement('div');
+    card.className = 'card shadow-sm';
+    card.dataset.listId = listId;
+
+    card.innerHTML = `
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2 w-100">
+          <i class="bi bi-ui-checks-grid"></i>
+          <input type="text" class="form-control form-control-sm" placeholder="Checklist title"
+                 value="${(list.title || '').replace(/"/g,'&quot;')}" data-role="list-title">
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm ms-2" data-role="remove-list" title="Remove checklist">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2" data-role="items"></div>
+        <button type="button" class="btn btn-light btn-sm mt-2" data-role="add-item">
+          <i class="bi bi-plus-lg"></i> Add item
+        </button>
+      </div>
+    `;
+
+    const itemsWrap = card.querySelector('[data-role="items"]');
+    (list.items || []).forEach(item => itemsWrap.appendChild(renderChecklistItem(item)));
+
+    // Events
+    card.querySelector('[data-role="add-item"]').addEventListener('click', () => {
+      itemsWrap.appendChild(renderChecklistItem({ id: uid(), text: '', done: false }));
+    });
+    card.querySelector('[data-role="remove-list"]').addEventListener('click', () => card.remove());
+
+    return card;
+  }
+
+  function renderChecklistItem(item) {
+    const row = document.createElement('div');
+    row.className = 'd-flex align-items-center gap-2';
+    row.dataset.itemId = item.id || uid();
+
+    row.innerHTML = `
+      <input class="form-check-input" type="checkbox" ${item.done ? 'checked' : ''} data-role="item-done">
+      <input class="form-control form-control-sm" type="text" placeholder="Item"
+             value="${(item.text || '').replace(/"/g,'&quot;')}" data-role="item-text" style="flex:1;">
+      <button type="button" class="btn btn-outline-danger btn-sm" data-role="remove-item" title="Remove item">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    `;
+
+    row.querySelector('[data-role="remove-item"]').addEventListener('click', () => row.remove());
+    return row;
+  }
+
+  // Collect GROUPED structure for the server:
+  // [{ title:"Section 1", items:[{text:"Item A", done:false}, ...] }, ...]
+  // If a section has NO items but has a title, we keep the title as one item
+  // so it isn't lost on save/view.
+  function collectChecklistsGrouped() {
+    const groups = [];
+    document.querySelectorAll('#checklists .card').forEach(card => {
+      const title = (card.querySelector('[data-role="list-title"]')?.value || '').trim();
+      const itemsWrap = card.querySelector('[data-role="items"]');
+      const items = [];
+      itemsWrap.querySelectorAll(':scope > div').forEach(row => {
+        const text = (row.querySelector('[data-role="item-text"]')?.value || '').trim();
+        const done = !!row.querySelector('[data-role="item-done"]')?.checked;
+        if (text) items.push({ text, done });
+      });
+      if (!items.length && title) {
+        // preserve empty section as a single line item
+        items.push({ text: title, done: false });
+      }
+      // Save the section even if still empty (no title & no items) — skip truly empty
+      if (title || items.length) {
+        groups.push({ title, items });
+      }
+    });
+    return groups;
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Initialize Select2 (only if jQuery loaded)
+    if (window.jQuery) {
+      $('.js-select2').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: function () { return $(this).data('placeholder') || ''; },
+        allowClear: true
+      });
+    }
+
+    // Checklist add button
+    document.getElementById('addChecklistBtn')?.addEventListener('click', () => {
+      document.getElementById('checklists').appendChild(
+        renderChecklist({ id: uid(), title: '', items: [] })
+      );
+    });
+
+    // If the server provided an initial JSON (e.g., when re-rendering with errors)
+    const existing = document.getElementById('checklists_json').value;
+    if (existing) {
+      try {
+        const parsed = JSON.parse(existing);
+        const wrap = document.getElementById('checklists');
+        // parsed might already be grouped OR flat; render lists if present
+        if (Array.isArray(parsed) && parsed.length) {
+          if (parsed[0]?.items) {
+            parsed.forEach(list => wrap.appendChild(renderChecklist(list)));
+          } else {
+            // fallback: render a single section from flat array
+            wrap.appendChild(renderChecklist({
+              id: uid(),
+              title: '',
+              items: parsed.map(it => ({ id: uid(), text: it.title || '', done: !!it.completed }))
+                           .filter(it => it.text)
+            }));
+          }
+        }
+      } catch (e) {
+        /* ignore malformed */
+      }
+    }
+
+    // Before submit, serialize checklist -> hidden input (GROUPED)
+    document.getElementById('ticket-form').addEventListener('submit', () => {
+      const grouped = collectChecklistsGrouped();
+      document.getElementById('checklists_json').value = JSON.stringify(grouped);
+    });
+  });
+</script>
+
+{% endblock %}

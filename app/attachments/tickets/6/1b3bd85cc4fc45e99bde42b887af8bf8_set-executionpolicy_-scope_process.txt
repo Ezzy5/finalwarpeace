@@ -1,0 +1,3 @@
+set-executionpolicy -scope process -executionpolicy remotesigned
+venv/Scripts/activate.ps1
+python wsgi.py

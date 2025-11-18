@@ -1,0 +1,22 @@
+<div class="row g-3">
+  <div class="col-lg-9">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+          <span class="fw-semibold" id="DayHeaderDate">—</span>
+          <span class="text-muted" id="DayHeaderMeta"></span>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <!-- Hours rail -->
+        <div class="day-grid" id="DayGrid">
+          <!-- JS builds 24 rows. Hover: show + button -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-3">
+    {% include "callendar/_mini_calendar.html" %}
+  </div>
+</div>

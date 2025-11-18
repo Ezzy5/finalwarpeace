@@ -1,0 +1,119 @@
+<!-- app/drive/templates/panel_drive.html -->
+<link rel="stylesheet" href="{{ url_for('drive.static', filename='drive.css') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<div class="container py-3" id="DriveApp" data-init="mountDrivePanel">
+  <div class="d-flex align-items-center justify-content-between mb-3 drive-toolbar">
+    <nav aria-label="breadcrumb" class="mb-0">
+      <ol class="breadcrumb mb-0" id="drive-breadcrumbs">
+        <li class="breadcrumb-item"><a href="#" data-action="nav-root">Root</a></li>
+      </ol>
+    </nav>
+
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <!-- New folder -->
+      <div class="input-group" style="max-width: 260px;">
+        <input class="form-control" id="drive-new-folder-name" placeholder="New folder name" autocomplete="off">
+        <button class="btn btn-primary" data-action="create-folder" type="button">Create</button>
+      </div>
+
+      <!-- View toggle -->
+      <div class="btn-group" role="group" aria-label="View">
+        <button class="btn btn-outline-secondary" data-action="set-view" data-mode="grid" title="Grid view">
+          <i class="bi bi-grid-3x3-gap"></i>
+        </button>
+        <button class="btn btn-outline-secondary" data-action="set-view" data-mode="list" title="List view">
+          <i class="bi bi-list-ul"></i>
+        </button>
+      </div>
+
+      <!-- Upload -->
+      <form id="drive-upload-form"
+            class="d-flex align-items-center gap-2"
+            enctype="multipart/form-data"
+            method="post"
+            action="/drive/api/file/upload"
+            novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="file" name="file" class="form-control" style="max-width: 260px;" required>
+        <button class="btn btn-success" type="button" data-action="upload-now">Upload</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Folders -->
+  <div class="mb-3">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <h6 class="m-0">Folders</h6>
+    </div>
+    <div id="drive-folders" class="drive-grid"></div>
+  </div>
+
+  <!-- Files -->
+  <div>
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <h6 class="m-0">Files</h6>
+    </div>
+    <div id="drive-files" class="drive-grid"></div>
+  </div>
+</div>
+
+<!-- File Preview Modal (used by drive.js openPreviewModal) -->
+<div class="modal fade" id="drivePreviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="drivePreviewTitle">File Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe id="drivePreviewFrame"
+                src="about:blank"
+                style="width:100%; height:80vh; border:0;"
+                referrerpolicy="no-referrer"
+                loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal (used by openShareModal in drive.js) -->
+<div class="modal fade" id="driveShareModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Share: <span id="shareTargetName"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Add people</label>
+          <div class="border rounded p-2" style="max-height: 260px; overflow:auto;">
+            <div id="shareUsersList" class="vstack gap-2 small"></div>
+          </div>
+          <div class="form-text">Choose users and select a permission next to each.</div>
+        </div>
+
+        <div class="alert alert-info py-2">
+          <div class="small mb-1">
+            <strong>Folders:</strong> sharing a folder will <em>inherit</em> the same permissions to all items inside.
+          </div>
+          <div class="small">Removing users here removes their access everywhere in this folder’s subtree.</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" id="shareSaveBtn">
+          <i class="bi bi-check2 me-1"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ensure drive.js is executed by the SPA loader -->
+<script src="{{ url_for('drive.static', filename='drive.js') }}" data-exec></script>

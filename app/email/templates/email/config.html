@@ -1,0 +1,132 @@
+<div id="EmailPanel" class="container py-4">
+  <h2 class="mb-3">⚙️ Configure Account</h2>
+
+  <!-- Not secure banner (auto shows when security=None) -->
+  <div id="InsecureBanner" class="alert alert-warning d-none" role="alert">
+    ⚠️ <strong>Not Secure:</strong> You selected <em>No security</em>. Credentials and messages may be exposed.
+  </div>
+
+  <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <!-- Account -->
+    <div class="card mb-3">
+      <div class="card-header">Account</div>
+      <div class="card-body">
+        <div class="mb-2">
+          {{ form.email_address.label(class="form-label") }}
+          {{ form.email_address(class="form-control", placeholder="name@company.com") }}
+        </div>
+        <div class="mb-2">
+          {{ form.password.label(class="form-label") }}
+          {{ form.password(class="form-control", autocomplete="new-password") }}
+          <div class="form-text">Use an app password if your provider requires 2FA.</div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6">
+            {{ form.display_name.label(class="form-label") }}
+            {{ form.display_name(class="form-control", placeholder="Display Name") }}
+          </div>
+          <div class="col-md-6">
+            {{ form.reply_to.label(class="form-label") }}
+            {{ form.reply_to(class="form-control", placeholder="reply@company.com") }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Incoming -->
+    <div class="card mb-3">
+      <div class="card-header">Incoming Server</div>
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-6">
+            {{ form.incoming_host.label(class="form-label") }}
+            {{ form.incoming_host(class="form-control", placeholder="imap.example.com") }}
+          </div>
+          <div class="col-md-3">
+            {{ form.incoming_port.label(class="form-label") }}
+            {{ form.incoming_port(class="form-control", placeholder="993") }}
+          </div>
+          <div class="col-md-3">
+            {{ form.incoming_security.label(class="form-label") }}
+            {{ form.incoming_security(class="form-select", id="incomingSecurity") }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outgoing -->
+    <div class="card mb-3">
+      <div class="card-header">Outgoing Server</div>
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-6">
+            {{ form.outgoing_host.label(class="form-label") }}
+            {{ form.outgoing_host(class="form-control", placeholder="smtp.example.com") }}
+          </div>
+          <div class="col-md-3">
+            {{ form.outgoing_port.label(class="form-label") }}
+            {{ form.outgoing_port(class="form-control", placeholder="465") }}
+          </div>
+          <div class="col-md-3">
+            {{ form.outgoing_security.label(class="form-label") }}
+            {{ form.outgoing_security(class="form-select", id="outgoingSecurity") }}
+          </div>
+        </div>
+
+        <div class="form-check mt-2">
+          {{ form.outgoing_auth_custom(class="form-check-input", id="outAuthCustom") }}
+          <label class="form-check-label" for="outAuthCustom">{{ form.outgoing_auth_custom.label.text }}</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced -->
+    <div class="card mb-3">
+      <div class="card-header">Advanced</div>
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-4 form-check mt-1">
+            {{ form.use_idle(class="form-check-input", id="useIdle") }}
+            <label class="form-check-label" for="useIdle">{{ form.use_idle.label.text }}</label>
+          </div>
+          <div class="col-md-4">
+            {{ form.sync_window_days.label(class="form-label") }}
+            {{ form.sync_window_days(class="form-control", placeholder="30") }}
+          </div>
+          <div class="col-md-4 form-check mt-1">
+            {{ form.allow_self_signed(class="form-check-input", id="allowSelf") }}
+            <label class="form-check-label" for="allowSelf">{{ form.allow_self_signed.label.text }}</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+      {{ form.submit(class="btn btn-primary") }}
+      <a href="{{ url_for('email.protocol_select') }}" class="btn btn-outline-secondary">Back</a>
+      <a href="{{ url_for('email.status_list') }}" class="btn btn-outline-secondary">Connected Accounts</a>
+    </div>
+  </form>
+
+  <!-- Inline behavior: warning when selecting "None" security -->
+  <script data-exec>
+    (function () {
+      function toggleBanner() {
+        var inc = document.getElementById('incomingSecurity');
+        var out = document.getElementById('outgoingSecurity');
+        var show = (inc && inc.value === 'none') || (out && out.value === 'none');
+        var el = document.getElementById('InsecureBanner');
+        if (!el) return;
+        el.classList.toggle('d-none', !show);
+      }
+      document.addEventListener('change', function (e) {
+        if (e.target && (e.target.id === 'incomingSecurity' || e.target.id === 'outgoingSecurity')) {
+          toggleBanner();
+        }
+      });
+      toggleBanner();
+    })();
+  </script>
+</div>

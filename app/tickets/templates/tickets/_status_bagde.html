@@ -1,0 +1,4 @@
+{% set st = t.status.value if t.status is defined else (status.value if status is defined else t.status) %}
+<span class="badge text-bg-{% if st=='Open' %}primary{% elif st=='In Progress' %}warning{% elif st=='Resolved' %}success{% else %}secondary{% endif %}">
+  {% if st=='Open' %}🟦{% elif st=='In Progress' %}⏳{% elif st=='Resolved' %}✅{% else %}🔒{% endif %} {{ st }}
+</span>

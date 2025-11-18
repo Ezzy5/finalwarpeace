@@ -1,0 +1,29 @@
+<div id="EmailPanel" class="container py-4">
+  <h2 class="mb-3">📧 Select Email Provider</h2>
+
+  <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+      {% for subfield in form.provider %}
+      {% set val = subfield._value() %}
+      <div class="col">
+        <label class="card p-3 h-100">
+          {{ subfield(class="form-check-input me-2") }}
+          <span class="fw-bold">{{ subfield.label.text }}</span>
+          {% if val == "custom" %}
+            <small class="text-muted d-block">Enter company mail servers manually</small>
+          {% else %}
+            <small class="text-muted d-block">Recommended: OAuth or IMAP/POP3</small>
+          {% endif %}
+        </label>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+      {{ form.submit(class="btn btn-primary") }}
+      <a href="{{ url_for('email.status_list') }}" class="btn btn-outline-secondary">View Connected</a>
+    </div>
+  </form>
+</div>

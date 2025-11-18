@@ -1,0 +1,174 @@
+<div id="TicketsPanel" data-init="mountTicketsPanel">
+  <style>
+    .clickable-row { cursor: pointer; }
+    .clickable-row:focus { outline: 2px solid #86b7fe; outline-offset: -2px; }
+  </style>
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h3>🎫 Тикети</h3>
+    <a href="{{ url_for('tickets.create') }}" class="btn btn-primary">+ Креирај тикет</a>
+  </div>
+
+  <form class="row g-2 align-items-end mb-3">
+    <div class="col-md-4">
+      <label class="form-label">Пребарување</label>
+      <input name="q" value="{{ q or '' }}" class="form-control" placeholder="наслов/опис...">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Статус</label>
+      <select name="status" class="form-select">
+        <option value="">Сите</option>
+        <option value="IN_PROGRESS" {{ 'selected' if status=='IN_PROGRESS' else '' }}>In Progress</option>
+        <option value="COMPLETED"   {{ 'selected' if status=='COMPLETED' else '' }}>Completed</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Приоритет</label>
+      <select name="priority" class="form-select">
+        <option value="">Сите</option>
+        {% for p in ['Low','Medium','High','Urgent'] %}
+        <option value="{{ p }}" {{ 'selected' if priority==p else '' }}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Подреди по</label>
+      <select name="sort" class="form-select">
+        <option value="created_desc" {{ 'selected' if sort=='created_desc' else '' }}>Датум (нови)</option>
+        <option value="created_asc"  {{ 'selected' if sort=='created_asc' else '' }}>Датум (стари)</option>
+        <option value="priority"     {{ 'selected' if sort=='priority' else '' }}>Приоритет</option>
+        <option value="status"       {{ 'selected' if sort=='status' else '' }}>Статус</option>
+      </select>
+    </div>
+    <div class="col-md-2 form-check mt-4">
+      <input class="form-check-input" type="checkbox" id="compact" name="compact" value="1" {{ 'checked' if compact else '' }}>
+      <label class="form-check-label" for="compact">Компактен приказ</label>
+    </div>
+    <div class="col-12">
+      <button class="btn btn-outline-secondary">Филтрирај</button>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table {{ 'table-sm' if compact else '' }} align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Наслов</th>
+          <th>Приоритет</th>
+          <th>Статус</th>
+          <th>Рок</th>
+          <th>Доделено</th>
+          <th>Оддели</th>
+          <th>Креиран</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr class="clickable-row"
+            data-href="{{ url_for('tickets.view', ticket_id=t.id) }}"
+            role="button" tabindex="0" aria-label="Отвори тикет #{{ t.id }}">
+
+          <td><a href="{{ url_for('tickets.view', ticket_id=t.id) }}">#{{ t.id }}</a></td>
+          <td>{{ t.title }}</td>
+
+          <!-- Priority badge -->
+          <td>
+            {% set pr = t.priority.value|default(t.priority) %}
+            <span class="badge text-bg-{% if pr=='Urgent' %}danger{% elif pr=='High' %}warning{% elif pr=='Medium' %}info{% else %}secondary{% endif %}">
+              {% if pr=='Urgent' %}🔥{% elif pr=='High' %}⚠️{% elif pr=='Medium' %}🟡{% else %}🟢{% endif %} {{ pr }}
+            </span>
+          </td>
+
+          <!-- Status badge (IN_PROGRESS / COMPLETED) -->
+          <td>
+            {% set st = (t.status.value if t.status is not string else t.status) %}
+            <span class="badge text-bg-{% if st=='IN_PROGRESS' %}warning{% else %}success{% endif %}">
+              {% if st=='IN_PROGRESS' %}⏳ In Progress{% else %}✅ Completed{% endif %}
+            </span>
+          </td>
+
+          <!-- Due date indicator -->
+          <td>
+            {% if t.due_date %}
+              {% set diff = (t.due_date - today).days %}
+              {% if diff == 0 %}
+                <span class="badge text-bg-warning">Today</span>
+              {% elif diff > 0 %}
+                <span class="badge text-bg-secondary">{{ diff }} day{% if diff != 1 %}s{% endif %} left</span>
+              {% else %}
+                <span class="badge text-bg-danger">{{ -diff }} day{% if diff != -1 %}s{% endif %} overdue</span>
+              {% endif %}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+
+          <!-- Assignees -->
+          <td>
+            {% if t.assignees %}
+              {% for u in t.assignees %}
+                {{ (u.first_name ~ ' ' ~ u.last_name)|trim }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            {% else %}—{% endif %}
+          </td>
+
+          <!-- Departments -->
+          <td>
+            {% if t.departments %}
+              {% for d in t.departments %}
+                {{ d.name }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            {% else %}—{% endif %}
+          </td>
+
+          <td>{{ t.created_at.strftime('%Y-%m-%d') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <nav>
+    <ul class="pagination">
+      {% for p in pagination.iter_pages() %}
+        {% if p %}
+          <li class="page-item {{ 'active' if p==pagination.page else '' }}">
+            <a class="page-link"
+               href="{{ url_for('tickets.panel', page=p, q=q, status=status, priority=priority, sort=sort, compact=1 if compact else None) }}">{{ p }}</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  <script data-exec>
+    (function(){
+      var container = document.getElementById('TicketsPanel');
+      if (!container) return;
+
+      container.addEventListener('click', function(e){
+        var row = e.target.closest('tr.clickable-row');
+        if (!row) return;
+        if (e.target.closest('a, button, input, textarea, select, label')) return;
+        var href = row.getAttribute('data-href');
+        if (!href) return;
+        if (e.ctrlKey || e.metaKey) window.open(href, '_blank'); else window.location.href = href;
+      });
+
+      container.addEventListener('keydown', function(e){
+        var row = e.target.closest('tr.clickable-row');
+        if (!row) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          var href = row.getAttribute('data-href');
+          if (href) window.location.href = href;
+        }
+      });
+    })();
+  </script>
+</div>

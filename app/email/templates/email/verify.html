@@ -1,0 +1,50 @@
+<div id="EmailPanel" class="container py-4">
+  <h2 class="mb-3">🔍 Verify Connection</h2>
+
+  <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="form-check mb-3">
+      {{ form.send_test_mail(class="form-check-input", id="sendTestMail") }}
+      <label class="form-check-label" for="sendTestMail">{{ form.send_test_mail.label.text }}</label>
+    </div>
+
+    {{ form.submit(class="btn btn-success") }}
+    <a href="{{ url_for('email.config_account') }}" class="btn btn-outline-secondary ms-2">Back</a>
+  </form>
+
+  {% if result %}
+  <div class="mt-4">
+    {% if result.success %}
+      <div class="alert alert-success">✅ Connection verified successfully!</div>
+    {% else %}
+      <div class="alert alert-danger">❌ Failed: {{ result.error }}</div>
+    {% endif %}
+
+    <ul class="list-group mt-3">
+      <li class="list-group-item">
+        <strong>Incoming:</strong>
+        {% if result.incoming and result.incoming.ok %}
+          <span class="text-success">{{ result.incoming.detail }}</span>
+        {% else %}
+          <span class="text-danger">{{ result.incoming and result.incoming.detail or "N/A" }}</span>
+        {% endif %}
+      </li>
+      <li class="list-group-item">
+        <strong>Outgoing:</strong>
+        {% if result.outgoing and result.outgoing.ok %}
+          <span class="text-success">{{ result.outgoing.detail }}</span>
+        {% else %}
+          <span class="text-danger">{{ result.outgoing and result.outgoing.detail or "N/A" }}</span>
+        {% endif %}
+      </li>
+    </ul>
+
+    {% if result.success %}
+    <div class="mt-3">
+      <a href="{{ url_for('email.status_list') }}" class="btn btn-primary">Go to Accounts</a>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>

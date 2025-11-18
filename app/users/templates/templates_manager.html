@@ -1,0 +1,123 @@
+{% raw %}
+<div class="modal fade" id="TemplatesModal" tabindex="-1" aria-labelledby="TemplatesModalLabel" aria-hidden="true" data-exec>
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="TemplatesModalLabel">Управување со темплејти за договори</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Затвори"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Toolbar -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="text-muted small">
+            Креирајте, уредувајте и бришете темплејти. Поддржани типови: <code>docx</code> и <code>html</code>.
+          </div>
+          <button class="btn btn-primary btn-sm" data-action="tpl-open-create">+ Нов темплејт</button>
+        </div>
+
+        <!-- List -->
+        <div id="TemplatesEmpty" class="text-muted">Нема темплејти.</div>
+        <div id="TemplatesList" class="list-group mb-3"></div>
+
+        <!-- Editor -->
+        <div id="TemplateEditor" class="card d-none">
+          <div class="card-header">Уредувач</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Име</label>
+                <input type="text" id="tpl-name" class="form-control" placeholder="Пр. Договор за вработување">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Тип</label>
+                <select id="tpl-type" class="form-select">
+                  <option value="docx">docx</option>
+                  <option value="html">html</option>
+                </select>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label">Опис (опционално)</label>
+                <input type="text" id="tpl-desc" class="form-control" placeholder="Краток опис">
+              </div>
+
+              <!-- WYSIWYG toolbar: only for HTML templates -->
+              <div class="col-12" id="tpl-wysi-toolbar" style="display:none">
+                <div class="d-flex flex-wrap gap-2 align-items-center border rounded px-2 py-2">
+                  <div class="d-flex align-items-center gap-1">
+                    <label class="me-1 small text-muted">Фонт</label>
+                    <select id="tpl-font" class="form-select form-select-sm" style="width:auto;">
+                      <option value="Arial">Arial</option>
+                      <option value="Calibri">Calibri</option>
+                      <option value="Times New Roman">Times New Roman</option>
+                      <option value="Verdana">Verdana</option>
+                      <option value="Tahoma">Tahoma</option>
+                      <option value="Georgia">Georgia</option>
+                    </select>
+                  </div>
+
+                  <div class="vr"></div>
+
+                  <div class="btn-group btn-group-sm" role="group" aria-label="Text style">
+                    <button type="button" class="btn btn-outline-secondary" data-wcmd="bold"><b>B</b></button>
+                    <button type="button" class="btn btn-outline-secondary" data-wcmd="italic"><i>I</i></button>
+                    <button type="button" class="btn btn-outline-secondary" data-wcmd="underline"><u>U</u></button>
+                  </div>
+
+                  <div class="vr"></div>
+
+                  <div class="btn-group btn-group-sm" role="group" aria-label="Alignment">
+                    <button type="button" class="btn btn-outline-secondary" data-wcmd="justifyLeft">Лево</button>
+                    <button type="button" class="btn btn-outline-secondary" data-wcmd="justifyCenter">Средина</button>
+                    <button type="button" class="btn btn-outline-secondary" data-wcmd="justifyRight">Десно</button>
+                    <button type="button" class="btn btn-outline-secondary" data-wcmd="justifyFull">Рамни</button>
+                  </div>
+                </div>
+                <div class="form-text mt-2">
+                  Користете placeholders: {{ first_name }}, {{ last_name }}, {{ months_display }}, {{ end_date_display }},
+                  {{ start_date|date('%d.%м.%Y') }}, {{ today|date('%d.%м.%Y') }} … Поддржани филтри:
+                  <code>|upper</code>, <code>|lower</code>, <code>|title</code>, <code>|date('%d.%m.%Y')</code>.
+                </div>
+              </div>
+
+              <!-- HTML editor (contenteditable) -->
+              <div class="col-12" id="tpl-wysi-wrap" style="display:none">
+                <div id="tpl-wysi"
+                     contenteditable="true"
+                     class="form-control"
+                     style="min-height:300px; overflow:auto;"></div>
+              </div>
+
+              <!-- Plain textarea (for DOCX templates content) -->
+              <div class="col-12" id="tpl-textarea-wrap">
+                <label class="form-label">Содржина (DOCX ќе го зачува текстот со placeholders)</label>
+                <textarea id="tpl-content" class="form-control" rows="12"
+                  placeholder="Користете placeholders како {{ first_name }}, {{ last_name }}, {{ months_display }}, {{ end_date_display }}, {{ start_date|date('%d.%m.%Y') }}."></textarea>
+                <div class="form-text">
+                  Достапни полиња: <code>first_name</code>, <code>last_name</code>, <code>full_name</code>,
+                  <code>email</code>, <code>phone_number</code>, <code>id_number</code>, <code>embg</code>,
+                  <code>city</code>, <code>address</code>, <code>bank_account</code>, <code>department</code>,
+                  <code>role</code>, <code>director_of</code>, <code>today</code>, <code>start_date</code>,
+                  <code>end_date</code>/<code>end_date_display</code>, <code>return_date</code>, <code>months</code>/<code>months_display</code>,
+                  <code>is_indefinite</code>, <code>kind</code>.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+              <button class="btn btn-success" data-action="tpl-save">Зачувај</button>
+              <button class="btn btn-outline-secondary" data-action="tpl-cancel">Откажи</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Затвори</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endraw %}

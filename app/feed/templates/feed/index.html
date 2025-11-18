@@ -1,0 +1,30 @@
+<div id="FeedContainer" class="space-y-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 m-0"><i class="bi bi-rss text-primary me-2"></i>Feed</h2>
+    <button class="btn btn-sm btn-outline-primary" data-hx-get="/feed/new" data-hx-target="#FeedContainer" data-hx-swap="afterbegin">
+      <i class="bi bi-plus-circle"></i> New Post
+    </button>
+  </div>
+
+  <!-- Posts -->
+  <div id="FeedPosts" class="d-flex flex-column gap-3">
+    {% for post in posts %}
+      <div class="card shadow-sm rounded-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-1">{{ post.title }}</h5>
+            <small class="text-muted">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+          </div>
+          <p class="mb-2 text-muted small">by {{ post.author.full_name }}</p>
+          <div class="feed-html mb-2">{{ post.html|safe }}</div>
+          <div class="d-flex gap-3">
+            <button class="btn btn-light btn-sm"><i class="bi bi-hand-thumbs-up"></i> Like</button>
+            <button class="btn btn-light btn-sm"><i class="bi bi-chat-dots"></i> Comment</button>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-muted text-center">No posts yet.</p>
+    {% endfor %}
+  </div>
+</div>

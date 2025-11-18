@@ -1,0 +1,141 @@
+<!-- app/war/templates/war.html -->
+<div id="war-app" class="container-fluid py-3" data-init="mountWarPanel">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <input id="companySearch" class="form-control" placeholder="Search companies..." style="max-width: 320px;">
+      <div class="btn-group" role="group" aria-label="View">
+        <button id="viewGridBtn" class="btn btn-outline-secondary" aria-pressed="true" type="button" title="Grid"><i class="bi bi-grid"></i></button>
+        <button id="viewListBtn" class="btn btn-outline-secondary" aria-pressed="false" type="button" title="List"><i class="bi bi-list"></i></button>
+      </div>
+    </div>
+
+    {% if is_admin_like() or can('war.manage') %}
+    <button id="addCompanyBtn" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i> New company
+    </button>
+    {% endif %}
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-5 col-xxl-4">
+      <div id="companiesWrap"></div>
+    </div>
+
+    <div class="col-12 col-lg-7 col-xxl-8">
+      <div id="companyHeader" class="card border-0 shadow-sm mb-3" style="display:none;">
+        <div class="card-body d-flex align-items-center justify-content-between">
+          <div>
+            <h5 id="companyName" class="mb-0"></h5>
+            <div class="text-muted small">External ID: <span id="companyExternalId">-</span></div>
+          </div>
+          {% if is_admin_like() or can('war.manage') %}
+          <div class="d-flex gap-2">
+            <button id="editCompanyBtn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</button>
+            <button id="deleteCompanyBtn" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div id="filters" class="card border-0 shadow-sm mb-3" style="display:none;">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-sm-4 col-md-3">
+              <label class="form-label">From</label>
+              <input id="fFrom" type="datetime-local" class="form-control">
+            </div>
+            <div class="col-sm-4 col-md-3">
+              <label class="form-label">To</label>
+              <input id="fTo" type="datetime-local" class="form-control">
+            </div>
+            <div class="col-sm-4 col-md-3">
+              <label class="form-label">Type</label>
+              <select id="fKind" class="form-select">
+                <option value="">All</option>
+                <option value="meeting">Meeting</option>
+                <option value="email">Email</option>
+                <option value="phone">Phone</option>
+              </select>
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label">Status</label>
+              <select id="fArchived" class="form-select">
+                <option value="active" selected>Active</option>
+                <option value="archived">Archived</option>
+                <option value="all">All</option>
+              </select>
+            </div>
+            <div class="col-sm-6 col-md-1 d-grid">
+              <button id="applyFiltersBtn" class="btn btn-outline-primary">Apply</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="newInteraction" class="card border-0 shadow-sm mb-3" style="display:none;">
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-3">
+              <select id="newKind" class="form-select">
+                <option value="meeting">Meeting</option>
+                <option value="email">Email</option>
+                <option value="phone">Phone</option>
+              </select>
+            </div>
+            <div class="col-md-7">
+              <input id="newText" class="form-control" placeholder="Write a note... (Ctrl/Cmd+Enter to send)">
+            </div>
+            <div class="col-md-2 d-grid">
+              <button id="sendInteractionBtn" class="btn btn-primary">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end mb-2" style="display:none;" id="exportWrap">
+        <button id="exportPdfBtn" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-filetype-pdf"></i> Export PDF
+        </button>
+      </div>
+
+      <div id="interactionsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Company Modal -->
+<div class="modal fade" id="companyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 id="companyModalTitle" class="modal-title">New Company</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input id="cName" class="form-control" placeholder="Company name">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">External ID</label>
+          <input id="cExternalId" class="form-control" placeholder="Custom ID (optional)">
+        </div>
+        <div class="mb-1">
+          <label class="form-label">Departments (can access)</label>
+          <select id="cDepartments" class="form-select" multiple size="8">
+            {% for d in departments %}
+              <option value="{{ d.id }}">{{ d.name }}</option>
+            {% endfor %}
+          </select>
+          <div class="form-text">Hold Ctrl/Cmd to select multiple.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="saveCompanyBtn" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Load War JS correctly as a static asset -->
+<script src="{{ url_for('war.static', filename='war.js') }}" defer></script>
